@@ -13,18 +13,65 @@
 
   let volumeValue = 1;
   let blinkState = true;
+  let showEnterPopover = true;
+  let audioPlayerRef: AudioPlayer;
+
+  // Global variable to track if popover has been seen this session
+  let hasSeenPopover = (globalThis as any).schizoPopoverSeen || false;
 
   $: ({
     colors: { background, window, text, highlight, highlightText },
   } = $currentTheme);
 
   onMount(() => {
+    // Only show enter popover if not seen this session
+    if (!hasSeenPopover) {
+      showEnterPopover = true;
+    } else {
+      showEnterPopover = false;
+    }
+    
     // Start blinking animation
     setInterval(() => {
       blinkState = !blinkState;
     }, 1000);
   });
+
+  function handleEnterClick() {
+    // Mark popover as seen for this session
+    (globalThis as any).schizoPopoverSeen = true;
+    hasSeenPopover = true;
+    showEnterPopover = false;
+    // Trigger audio play
+    if (audioPlayerRef) {
+      audioPlayerRef.togglePlay();
+    }
+  }
 </script>
+
+<!-- ENTER POPOVER -->
+{#if showEnterPopover}
+  <div class="enter-popover-overlay">
+    <div class="enter-popover">
+      <Window title="🎵 WELCOME TO THE SCHIZO ZONE 🎵" width="400px">
+        <div class="p-4 text-center">
+          <div class="mega-text rainbow mb-4">
+            🚀 PREPARE FOR DIGITAL CHAOS! 🚀
+          </div>
+          <div class="schizo-text mb-4">
+            Click ENTER to activate the full schizo experience with immersive audio!
+          </div>
+          <div class="matrix p-2 mb-4 text-sm">
+            ⚠️ WARNING: May cause uncontrollable urges to mint NFTs ⚠️
+          </div>
+          <Button on:click={handleEnterClick}>
+            <span class="mega-text blink">🎯 ENTER THE MATRIX 🎯</span>
+          </Button>
+        </div>
+      </Window>
+    </div>
+  </div>
+{/if}
 
 <!-- MAIN COLUMN -->
 <div
@@ -49,7 +96,7 @@
     <img
       src={schizodio_title}
       alt="Schizodio"
-      class="max-w-full h-auto rainbow"
+      class="w-full h-auto rainbow"
       style="max-width: 500px;"
     />
   </div>
@@ -100,7 +147,7 @@
         </div>
       </Window>
       <Window title="💿schizo.mp3" width="full">
-        <AudioPlayer audioSrc="./canttakemyeyesoffyou.mp3" />
+        <AudioPlayer bind:this={audioPlayerRef} audioSrc="./canttakemyeyesoffyou_1.mp3" />
       </Window>
       <img src={schizodio_sq} alt="SCHIZODIO" width="auto" class="" />
     </div>
@@ -278,6 +325,41 @@
     }
     75% {
       transform: translateX(5px);
+    }
+  }
+
+  /* ENTER POPOVER STYLES */
+  .enter-popover-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+  }
+
+  .enter-popover {
+    animation: popover-entrance 0.5s ease-out;
+    transform-origin: center;
+  }
+
+  @keyframes popover-entrance {
+    0% {
+      transform: scale(0.3) rotate(-10deg);
+      opacity: 0;
+    }
+    50% {
+      transform: scale(1.1) rotate(5deg);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(1) rotate(0deg);
+      opacity: 1;
     }
   }
 
