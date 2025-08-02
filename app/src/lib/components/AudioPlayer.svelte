@@ -46,6 +46,9 @@
     }
   }
 
+  // Export the togglePlay function so parent components can call it
+  export { togglePlay };
+
   function handleVolumeChange(event: CustomEvent<number>) {
     volume = event.detail;
     if (audio) {
