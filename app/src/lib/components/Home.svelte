@@ -96,7 +96,7 @@
     <img
       src={schizodio_title}
       alt="Schizodio"
-      class="max-w-full h-auto rainbow"
+      class="w-full h-auto rainbow"
       style="max-width: 500px;"
     />
   </div>
