@@ -681,12 +681,12 @@
       <div class="flex flex-col gap-4 flex-1 max-w-2xl">
         <!-- NFT PREVIEW -->
         <Window title="🖼️ SCHIZO PORTAL PREVIEW 🖼️" width="full">
-          <div class="p-4">
+          <div class="p-4 pb-4">
             <div
-              class="border-4 border-black p-2 mb-3 bg-gradient-to-r from-purple-500 to-pink-500"
+              class="border-4 border-black mb-3 bg-gradient-to-r from-purple-500 to-pink-500"
             >
               <img
-                src={getIPFSImageUrl(currentSupply)}
+                src="placeholder.webp"
                 alt="Schizo NFT Preview"
                 class="w-full"
                 loading="lazy"
@@ -731,6 +731,7 @@
             </div>
           </div>
         </Window>
+        
 
         <!-- LAST MINTED -->
         {#if lastMintedId !== null}
