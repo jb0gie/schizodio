@@ -14,6 +14,7 @@
   import {
     COLLECTION_CONFIG,
     CONTRACT_ABI,
+    ERC20_ABI,
     type TokenMetadata,
   } from '../types/contract';
 
@@ -24,12 +25,17 @@
   let walletName = '';
   let currentSupply = 0;
   let maxSupply: number = COLLECTION_CONFIG.MAX_SUPPLY;
-  let mintPrice = 30; // $30 USD
+  // mintPrice is now calculated dynamically based on selectedPaymentToken
   let isMinting = false;
   let mintStatus = '';
   let lastMintedId: number | null = null;
   let obfuscationMapLoaded = false;
   let isRevealed = false;
+
+  // Reactive statement to calculate selected payment token for display
+  $: selectedPaymentToken = paymentTokens.find(
+    token => token.symbol === selectedToken
+  );
 
   // Provider and contract instances
   let provider: RpcProvider;
@@ -53,42 +59,42 @@
     {
       symbol: 'ETH',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.ETH,
-      price: '0.01',
+      price: '0.003',
       decimals: 18,
       icon: '⟠',
     },
     {
       symbol: 'USDC',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.USDC,
-      price: '30',
+      price: '10',
       decimals: 6,
       icon: '💸',
     },
     {
       symbol: 'USDT',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.USDT,
-      price: '30',
+      price: '10',
       decimals: 6,
       icon: '💵',
     },
     {
       symbol: 'DAI',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.DAI,
-      price: '30',
+      price: '10',
       decimals: 18,
       icon: '🟡',
     },
     {
       symbol: 'WBTC',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.WBTC,
-      price: '0.0003',
+      price: '0.0001',
       decimals: 8,
       icon: '₿',
     },
     {
       symbol: 'STRK',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.STRK,
-      price: '300',
+      price: '100',
       decimals: 18,
       icon: '⭐',
     },
@@ -405,6 +411,14 @@
       return;
     }
 
+    // Debug logging to confirm the correct address is being used
+    console.log('🔍 Payment Token Debug:', {
+      selectedToken,
+      selectedPaymentToken,
+      address: selectedPaymentToken.address,
+      price: selectedPaymentToken.price,
+    });
+
     try {
       isMinting = true;
       mintStatus = `🛸 INITIATING ${selectedToken} SACRIFICE RITUAL... 🛸`;
@@ -412,61 +426,225 @@
       // Connect the contract to the account
       contract.connect(account);
 
+      // Check if we need to approve the token first
+      if (selectedToken !== 'ETH') {
+        mintStatus = `🔐 CHECKING ${selectedToken} PERMISSIONS...`;
+
+        try {
+          // Create ERC20 contract instance for the payment token
+          const erc20Contract = new Contract(
+            ERC20_ABI,
+            selectedPaymentToken.address,
+            provider
+          );
+
+          // Check user's balance first
+          const balance = await erc20Contract.balance_of(walletAddress);
+          console.log('Raw balance response:', balance);
+
+          // Handle different balance response structures
+          let balanceValue: number;
+          if (balance.balance?.value) {
+            balanceValue = Number(balance.balance.value);
+          } else if (balance.balance) {
+            balanceValue = Number(balance.balance);
+          } else if (balance.value) {
+            balanceValue = Number(balance.value);
+          } else {
+            balanceValue = Number(balance);
+          }
+
+          console.log('User balance:', balanceValue);
+          console.log(
+            'User balance (human readable):',
+            balanceValue / Math.pow(10, selectedPaymentToken.decimals)
+          );
+
+          // Check current allowance
+          const allowance = await erc20Contract.allowance(
+            walletAddress,
+            COLLECTION_CONFIG.CONTRACT_ADDRESS
+          );
+          console.log('Raw allowance response:', allowance);
+
+          // Convert price to proper decimals
+          const priceAmount =
+            parseFloat(selectedPaymentToken.price) *
+            Math.pow(10, selectedPaymentToken.decimals);
+
+          // Check if user has enough balance
+          if (balanceValue < priceAmount) {
+            throw new Error(
+              `Insufficient balance: ${balanceValue / Math.pow(10, selectedPaymentToken.decimals)} ${selectedToken} available, ${selectedPaymentToken.price} ${selectedToken} required`
+            );
+          }
+
+          // Handle u256 allowance value correctly
+          let currentAllowance: number;
+          if (allowance.allowance?.value) {
+            currentAllowance = Number(allowance.allowance.value);
+          } else if (allowance.allowance) {
+            currentAllowance = Number(allowance.allowance);
+          } else if (allowance.value) {
+            currentAllowance = Number(allowance.value);
+          } else {
+            currentAllowance = Number(allowance);
+          }
+
+          console.log('Current allowance (parsed):', currentAllowance);
+          console.log('Required amount:', priceAmount);
+
+          if (currentAllowance < priceAmount) {
+            mintStatus = `🔓 APPROVING ${selectedToken} SPENDING PERMISSIONS...`;
+
+            // Approve the NFT contract to spend tokens
+            console.log('Approving amount:', priceAmount.toString());
+            const approveCall = erc20Contract.populate('approve', [
+              COLLECTION_CONFIG.CONTRACT_ADDRESS,
+              priceAmount.toString(),
+            ]);
+
+            const approveTx = await account.execute(approveCall);
+            console.log(
+              'Approve transaction hash:',
+              approveTx.transaction_hash
+            );
+
+            // Wait for approval transaction
+            await provider.waitForTransaction(approveTx.transaction_hash, {
+              retryInterval: 2000,
+              successStates: ['ACCEPTED_ON_L1', 'ACCEPTED_ON_L2'],
+            });
+
+            // Verify the approval was successful
+            const newAllowance = await erc20Contract.allowance(
+              walletAddress,
+              COLLECTION_CONFIG.CONTRACT_ADDRESS
+            );
+            console.log('Raw new allowance response:', newAllowance);
+
+            let newAllowanceValue: number;
+            if (newAllowance.allowance?.value) {
+              newAllowanceValue = Number(newAllowance.allowance.value);
+            } else if (newAllowance.allowance) {
+              newAllowanceValue = Number(newAllowance.allowance);
+            } else if (newAllowance.value) {
+              newAllowanceValue = Number(newAllowance.value);
+            } else {
+              newAllowanceValue = Number(newAllowance);
+            }
+
+            console.log('New allowance after approval:', newAllowanceValue);
+
+            if (newAllowanceValue >= priceAmount) {
+              mintStatus = `✅ ${selectedToken} PERMISSIONS GRANTED! PROCEEDING WITH MINT...`;
+            } else {
+              throw new Error(
+                `Approval failed: new allowance (${newAllowanceValue}) is less than required (${priceAmount})`
+              );
+            }
+          }
+        } catch (approvalError: any) {
+          console.error('Approval failed:', approvalError);
+          console.error('Approval error details:', {
+            message: approvalError.message,
+            code: approvalError.code,
+            data: approvalError.data,
+            fullError: approvalError,
+          });
+          mintStatus = `⚠️ APPROVAL FAILED: ${approvalError.message || 'Unknown error'}`;
+          return;
+        }
+      }
+
       mintStatus = `💸 TRANSFERRING ${selectedPaymentToken.price} ${selectedToken} TO THE VOID...`;
 
       let mintCall;
 
-      // Try different minting approaches
-      if (selectedToken === 'ETH') {
-        // For ETH, try the simple mint function first
-        try {
-          mintCall = contract.populate('mint', []);
-          mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER FROM THE ABYSS...';
-        } catch (error) {
-          console.log('Simple mint failed, trying with payment...');
-          // Fallback to mint_with_payment
-          mintCall = contract.populate('mint_with_payment', [
-            selectedPaymentToken.address,
-          ]);
-          mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER WITH PAYMENT...';
-        }
-      } else {
-        // For other tokens, use mint_with_payment
-        mintCall = contract.populate('mint_with_payment', [
-          selectedPaymentToken.address,
-        ]);
-        mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER WITH PAYMENT...';
-      }
+      // Call the mint function with quantity and payment token
+      mintCall = contract.populate('mint', [
+        1, // quantity - mint 1 NFT
+        selectedPaymentToken.address, // payment token address
+      ]);
+      mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER FROM THE ABYSS...';
 
       const tx = await account.execute(mintCall);
 
       mintStatus = '⚡ TRANSACTION LAUNCHED INTO THE BLOCKCHAIN MATRIX! ⚡';
+      console.log('Transaction hash:', tx.transaction_hash);
 
-      // Wait for transaction to be accepted
-      await provider.waitForTransaction(tx.transaction_hash);
+      // Wait for transaction with timeout and better error handling
+      try {
+        await provider.waitForTransaction(tx.transaction_hash, {
+          retryInterval: 2000, // Check every 2 seconds
+          successStates: ['ACCEPTED_ON_L1', 'ACCEPTED_ON_L2'],
+        });
 
-      lastMintedId = currentSupply;
-      currentSupply += 1;
-      mintStatus = `🎉 SCHIZO BROTHER #${lastMintedId} HAS BEEN BORN! WELCOME TO THE FAMILY! 🎉`;
+        // Set the correct token ID (the one that was just minted)
+        lastMintedId = currentSupply;
+        // Update reveal status based on the token ID
+        isRevealed = shouldRevealNFT(lastMintedId);
 
-      // Random celebration popup
-      setTimeout(() => {
-        popupMessage = `🎊 BREAKING: ${walletAddress.slice(0, 6)}... just minted NFT #${lastMintedId} for ${selectedPaymentToken.price} ${selectedToken}! The blockchain is trembling! 🎊`;
-        showFakePopup = true;
-      }, 1000);
-    } catch (error) {
+        // Increment supply after setting the token ID
+        currentSupply += 1;
+
+        console.log(
+          `🎉 NFT minted successfully! Token ID: ${lastMintedId}, Revealed: ${isRevealed}`
+        );
+        console.log(`Image URL will be: ${getIPFSImageUrl(lastMintedId)}`);
+        console.log(
+          `lastMintedId set to: ${lastMintedId}, should show Freshly Adopted section: ${lastMintedId !== null}`
+        );
+
+        mintStatus = `🎉 SCHIZO BROTHER #${lastMintedId} HAS BEEN BORN! WELCOME TO THE FAMILY! 🎉`;
+
+        // Random celebration popup
+        setTimeout(() => {
+          popupMessage = `🎊 BREAKING: ${walletAddress.slice(0, 6)}... just minted NFT #${lastMintedId} for ${selectedPaymentToken.price} ${selectedToken}! The blockchain is trembling! 🎊`;
+          showFakePopup = true;
+        }, 1000);
+      } catch (waitError: any) {
+        console.error('Transaction wait failed:', waitError);
+
+        if (waitError.message?.includes('TimedOut')) {
+          mintStatus = `⏰ TRANSACTION TIMEOUT! Your NFT might still be processing. Check your wallet for transaction: ${tx.transaction_hash.slice(0, 10)}...`;
+
+          // Show transaction hash for manual checking
+          setTimeout(() => {
+            popupMessage = `🔍 TRANSACTION SENT! Hash: ${tx.transaction_hash.slice(0, 20)}... Check your wallet or block explorer to confirm!`;
+            showFakePopup = true;
+          }, 2000);
+        } else {
+          mintStatus = `⚠️ TRANSACTION UNCERTAIN! Error: ${waitError.message || 'Unknown error'}. Check your wallet for transaction status.`;
+        }
+      }
+    } catch (error: any) {
       console.error('Minting failed:', error);
 
       // Provide more specific error messages
-      if (error.message.includes('ENTRYPOINT_NOT_FOUND')) {
+      if (error.message?.includes('ENTRYPOINT_NOT_FOUND')) {
         mintStatus =
           '💥 FUNCTION NOT FOUND! The contract might be different than expected.';
-      } else if (error.message.includes('insufficient funds')) {
+      } else if (error.message?.includes('insufficient funds')) {
         mintStatus = '💰 INSUFFICIENT FUNDS! Make sure you have enough tokens.';
-      } else if (error.message.includes('user rejected')) {
+      } else if (error.message?.includes('user rejected')) {
         mintStatus = '👻 USER REJECTED! The ritual was cancelled.';
+      } else if (error.message?.includes('Insufficient token allowance')) {
+        mintStatus = `🔐 INSUFFICIENT ${selectedToken} ALLOWANCE! The approval process may have failed. Try again.`;
+      } else if (
+        error.message?.includes('timeout') ||
+        error.message?.includes('TimedOut')
+      ) {
+        mintStatus =
+          '⏰ NETWORK TIMEOUT! The blockchain is slow today. Try again in a few minutes.';
+      } else if (
+        error.message?.includes('network') ||
+        error.message?.includes('connection')
+      ) {
+        mintStatus =
+          '🌐 NETWORK ERROR! Check your internet connection and try again.';
       } else {
-        mintStatus = `💥 THE SIMULATION GLITCHED! Error: ${error.message}`;
+        mintStatus = `💥 THE SIMULATION GLITCHED! Error: ${error.message || 'Unknown error'}`;
       }
     } finally {
       isMinting = false;
@@ -511,7 +689,17 @@
   }
 
   function getIPFSImageUrl(tokenId: number): string {
-    return getImageUrl(tokenId, isRevealed);
+    const imageUrl = getImageUrl(tokenId, isRevealed);
+    console.log(
+      `Getting image for token ${tokenId}, revealed: ${isRevealed}, URL: ${imageUrl}`
+    );
+    return imageUrl;
+  }
+
+  // Function to determine if NFT should be revealed
+  function shouldRevealNFT(tokenId: number): boolean {
+    // Contract has been revealed, so all NFTs should be revealed
+    return true;
   }
 </script>
 
@@ -678,7 +866,7 @@
                 >
                   <div class="mega-text">{token.icon} {token.symbol}</div>
                   <div class="schizo-text">{token.price} {token.symbol}</div>
-                  <div class="text-sm">~$30 USD</div>
+                  <div class="text-sm">~10 USD</div>
                 </div>
               {/each}
             </div>
@@ -689,6 +877,11 @@
                 PRICE: {paymentTokens.find(t => t.symbol === selectedToken)
                   ?.price}
                 {selectedToken}
+              </div>
+              <div class="text-xs mt-1 opacity-80">
+                ADDRESS: {paymentTokens
+                  .find(t => t.symbol === selectedToken)
+                  ?.address.slice(0, 10)}...
               </div>
             </div>
           </div>
@@ -708,7 +901,8 @@
               {:else if currentSupply >= maxSupply}
                 💀 ALL BROTHERS ADOPTED 💀
               {:else}
-                🎯 SUMMON SCHIZO BROTHER (${mintPrice})
+                🎯 SUMMON SCHIZO BROTHER ({selectedPaymentToken?.price || '0'}
+                {selectedToken})
               {/if}
             </Button>
 
@@ -781,6 +975,7 @@
         </Window>
 
         <!-- LAST MINTED -->
+        <!-- DEBUG: lastMintedId = {lastMintedId} -->
         {#if lastMintedId !== null}
           <Window title="🎉 FRESH ADOPTION 🎉" width="full">
             <div class="p-4">

@@ -24,7 +24,16 @@ export const CONTRACT_ABI = [
   {
     "type": "function",
     "name": "mint",
-    "inputs": [],
+    "inputs": [
+      {
+        "type": "core::integer::u256",
+        "name": "quantity"
+      },
+      {
+        "type": "core::starknet::contract_address::ContractAddress",
+        "name": "payment_token"
+      }
+    ],
     "outputs": [],
     "state_mutability": "external"
   },
@@ -113,9 +122,9 @@ export const COLLECTION_CONFIG = {
     // Sepolia testnet addresses (same as mainnet for now)
     ETH: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
     USDC: '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8',
-    USDT: '0x068f5c6a617d684c79417996843e3e7f1e9392b70b2e520c8f8d21e2bd2f168',
+    USDT: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',
     DAI: '0x00da114221cb83fa859dbdb4c44beeaa0bb37c7537ad5ae66fe5e0efd20e6eb3',
-    WBTC: '0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771643e9a626',
+    WBTC: '0x03fe2b97c1fd336e750087d68b9b867997fd64a2661ff3ca5a7c771641e8e7ac',
     STRK: '0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d',
   },
 } as const;
@@ -861,3 +870,103 @@ export const TOKEN_HASHES: Record<number, string> = {
   "737": "2b0bee350a505bf19c88ce28b3d6ef42165eebcb82ff3c237b7d3a4998c2a675",
   "738": "1d6b9df93f1c6c6473548b78bc5942366fe483db7b608de3c5db8c00993a3c6a"
 };
+
+// Complete ERC20 ABI for token approvals
+export const ERC20_ABI = [
+  {
+    "type": "function",
+    "name": "name",
+    "inputs": [],
+    "outputs": [{ "type": "core::felt252" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "symbol",
+    "inputs": [],
+    "outputs": [{ "type": "core::felt252" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "decimals",
+    "inputs": [],
+    "outputs": [{ "type": "core::integer::u8" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "total_supply",
+    "inputs": [],
+    "outputs": [{ "type": "core::integer::u256" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "balance_of",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "account" }
+    ],
+    "outputs": [{ "type": "core::integer::u256" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "allowance",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "owner" },
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "spender" }
+    ],
+    "outputs": [{ "type": "core::integer::u256" }],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transfer",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "recipient" },
+      { "type": "core::integer::u256", "name": "amount" }
+    ],
+    "outputs": [{ "type": "core::bool" }],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "transfer_from",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "sender" },
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "recipient" },
+      { "type": "core::integer::u256", "name": "amount" }
+    ],
+    "outputs": [{ "type": "core::bool" }],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "approve",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "spender" },
+      { "type": "core::integer::u256", "name": "amount" }
+    ],
+    "outputs": [{ "type": "core::bool" }],
+    "state_mutability": "external"
+  },
+  {
+    "type": "event",
+    "name": "Transfer",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "from", "indexed": true },
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "to", "indexed": true },
+      { "type": "core::integer::u256", "name": "value", "indexed": false }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "Approval",
+    "inputs": [
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "owner", "indexed": true },
+      { "type": "core::starknet::contract_address::ContractAddress", "name": "spender", "indexed": true },
+      { "type": "core::integer::u256", "name": "value", "indexed": false }
+    ]
+  }
+];

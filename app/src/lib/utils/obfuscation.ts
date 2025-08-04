@@ -41,22 +41,31 @@ export function getObfuscatedHash(tokenId: number): string | null {
 	}
 
 	const entry = obfuscationMap[tokenId.toString()];
+	console.log(`Looking up tokenId ${tokenId} in obfuscation map:`, entry);
 	return entry?.hash || null;
 }
 
 export function getImageUrl(tokenId: number, isRevealed: boolean = false): string {
 	const hash = getObfuscatedHash(tokenId);
+	console.log(`getImageUrl called with tokenId: ${tokenId}, isRevealed: ${isRevealed}, hash: ${hash}`);
+
 	if (!hash) {
 		// Fallback to original naming if obfuscation map isn't available
-		return `https://ipfs.io/ipfs/QmSyokSEoMsxwoLzvXS4D7Wi7byCnCL5BSnyZJEEW4sNvP/${tokenId}.png`;
+		const fallbackUrl = `https://techshaman.42024769.xyz/schizodio/images/revealed/${tokenId}.png`;
+		console.log(`No hash found, using fallback URL: ${fallbackUrl}`);
+		return fallbackUrl;
 	}
 
 	if (isRevealed) {
 		// Return revealed version
-		return `https://ipfs.io/ipfs/QmSyokSEoMsxwoLzvXS4D7Wi7byCnCL5BSnyZJEEW4sNvP/${hash}.png`;
+		const revealedUrl = `https://techshaman.42024769.xyz/schizodio/images/revealed/${hash}.png`;
+		console.log(`Returning revealed URL: ${revealedUrl}`);
+		return revealedUrl;
 	} else {
 		// Return pixelated version
-		return `https://ipfs.io/ipfs/QmTmerc9M5P7kDxXhvG8wLoeCxr9ivS57ysu6mT3A4buGH/${hash}.png`;
+		const pixelatedUrl = `https://techshaman.42024769.xyz/schizodio/images/unrevealed/${hash}.png`;
+		console.log(`Returning pixelated URL: ${pixelatedUrl}`);
+		return pixelatedUrl;
 	}
 }
 
@@ -64,15 +73,15 @@ export function getMetadataUrl(tokenId: number, isRevealed: boolean = false): st
 	const hash = getObfuscatedHash(tokenId);
 	if (!hash) {
 		// Fallback to original naming if obfuscation map isn't available
-		return `https://techshaman.42024769.xyz/schizodio/json/revealed/${tokenId}.json`;
+		return `https://techshaman.42024769.xyz/schizodio/images/revealed/${tokenId}.json`;
 	}
 
 	if (isRevealed) {
 		// Return revealed metadata
-		return `https://techshaman.42024769.xyz/schizodio/json/revealed/${hash}.json`;
+		return `https://techshaman.42024769.xyz/schizodio/images/revealed/${hash}.json`;
 	} else {
 		// Return unrevealed metadata
-		return `https://techshaman.42024769.xyz/schizodio/json/unrevealed/${hash}.json`;
+		return `https://techshaman.42024769.xyz/schizodio/images/unrevealed/${hash}.json`;
 	}
 }
 
