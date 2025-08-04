@@ -11,7 +11,11 @@
   import { InjectedConnector } from 'starknetkit/injected';
   import { WebWalletConnector } from 'starknetkit/webwallet';
   import { loadObfuscationMap, getImageUrl } from '../utils/obfuscation';
-  import { COLLECTION_CONFIG, type TokenMetadata } from '../types/contract';
+  import {
+    COLLECTION_CONFIG,
+    CONTRACT_ABI,
+    type TokenMetadata,
+  } from '../types/contract';
 
   let walletConnected = false;
   let account: Account | null = null;
@@ -19,13 +23,29 @@
   let walletId = '';
   let walletName = '';
   let currentSupply = 0;
-  let maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
+  let maxSupply: number = COLLECTION_CONFIG.MAX_SUPPLY;
   let mintPrice = 30; // $30 USD
   let isMinting = false;
   let mintStatus = '';
   let lastMintedId: number | null = null;
   let obfuscationMapLoaded = false;
   let isRevealed = false;
+
+  // Provider and contract instances
+  let provider: RpcProvider;
+  let contract: Contract;
+
+  // Initialize provider and contract
+  onMount(() => {
+    provider = new RpcProvider({
+      nodeUrl: 'https://starknet-sepolia.public.blastapi.io',
+    });
+    contract = new Contract(
+      CONTRACT_ABI,
+      COLLECTION_CONFIG.CONTRACT_ADDRESS,
+      provider
+    );
+  });
 
   // Payment tokens
   let selectedToken = 'ETH';
@@ -348,14 +368,21 @@
 
   async function loadSupplyInfo() {
     try {
-      // This would connect to your deployed contract to get current supply
-      // For now, using placeholder values
-      currentSupply = 42; // Replace with actual contract call
-      maxSupply = 999;
-      mintPrice = 0; // Free mint
-      isRevealed = false; // Replace with actual contract call
+      console.log('📊 Loading supply information...');
+
+      // Fetch current supply from the deployed contract
+      const totalSupplyResult = await contract.total_supply();
+      currentSupply = Number(totalSupplyResult.total);
+
+      // Use the configured max supply since max_supply is not a standard ERC721 function
+      maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
+
+      console.log('✅ Supply info loaded:', { currentSupply, maxSupply });
     } catch (error) {
-      console.error('Failed to load supply info:', error);
+      console.error('❌ Failed to load supply info:', error);
+      // Fallback to default values
+      currentSupply = 0;
+      maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
     }
   }
 
@@ -382,23 +409,34 @@
       isMinting = true;
       mintStatus = `🛸 INITIATING ${selectedToken} SACRIFICE RITUAL... 🛸`;
 
-      // Create contract instance
-      const provider = new RpcProvider({
-        nodeUrl: 'https://starknet-mainnet.public.blastapi.io',
-      });
-
-      // You'll need to replace this with your actual contract ABI
-      const contract = new Contract([], NFT_CONTRACT_ADDRESS, provider);
+      // Connect the contract to the account
       contract.connect(account);
 
       mintStatus = `💸 TRANSFERRING ${selectedPaymentToken.price} ${selectedToken} TO THE VOID...`;
 
-      // For paid minting, use mint_with_payment function
-      const mintCall = contract.populate('mint_with_payment', [
-        selectedPaymentToken.address,
-      ]);
+      let mintCall;
 
-      mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER FROM THE ABYSS...';
+      // Try different minting approaches
+      if (selectedToken === 'ETH') {
+        // For ETH, try the simple mint function first
+        try {
+          mintCall = contract.populate('mint', []);
+          mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER FROM THE ABYSS...';
+        } catch (error) {
+          console.log('Simple mint failed, trying with payment...');
+          // Fallback to mint_with_payment
+          mintCall = contract.populate('mint_with_payment', [
+            selectedPaymentToken.address,
+          ]);
+          mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER WITH PAYMENT...';
+        }
+      } else {
+        // For other tokens, use mint_with_payment
+        mintCall = contract.populate('mint_with_payment', [
+          selectedPaymentToken.address,
+        ]);
+        mintStatus = '🎭 SUMMONING YOUR SCHIZO BROTHER WITH PAYMENT...';
+      }
 
       const tx = await account.execute(mintCall);
 
@@ -418,8 +456,18 @@
       }, 1000);
     } catch (error) {
       console.error('Minting failed:', error);
-      mintStatus =
-        '💥 THE SIMULATION GLITCHED! Try again or reality might collapse! 💥';
+
+      // Provide more specific error messages
+      if (error.message.includes('ENTRYPOINT_NOT_FOUND')) {
+        mintStatus =
+          '💥 FUNCTION NOT FOUND! The contract might be different than expected.';
+      } else if (error.message.includes('insufficient funds')) {
+        mintStatus = '💰 INSUFFICIENT FUNDS! Make sure you have enough tokens.';
+      } else if (error.message.includes('user rejected')) {
+        mintStatus = '👻 USER REJECTED! The ritual was cancelled.';
+      } else {
+        mintStatus = `💥 THE SIMULATION GLITCHED! Error: ${error.message}`;
+      }
     } finally {
       isMinting = false;
     }
@@ -731,7 +779,6 @@
             </div>
           </div>
         </Window>
-        
 
         <!-- LAST MINTED -->
         {#if lastMintedId !== null}

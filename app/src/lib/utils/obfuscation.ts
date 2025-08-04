@@ -64,15 +64,15 @@ export function getMetadataUrl(tokenId: number, isRevealed: boolean = false): st
 	const hash = getObfuscatedHash(tokenId);
 	if (!hash) {
 		// Fallback to original naming if obfuscation map isn't available
-		return `https://ipfs.io/ipfs/QmXrPhG9tvjkzUgRFeFWFYVBNe2CWx24izvc3cs7fiQdzW/${tokenId}.json`;
+		return `https://techshaman.42024769.xyz/schizodio/json/revealed/${tokenId}.json`;
 	}
 
 	if (isRevealed) {
 		// Return revealed metadata
-		return `https://ipfs.io/ipfs/QmXrPhG9tvjkzUgRFeFWFYVBNe2CWx24izvc3cs7fiQdzW/${hash}.json`;
+		return `https://techshaman.42024769.xyz/schizodio/json/revealed/${hash}.json`;
 	} else {
-		// Return pixelated metadata
-		return `https://ipfs.io/ipfs/QmTmerc9M5P7kDxXhvG8wLoeCxr9ivS57ysu6mT3A4buGH/${hash}.json`;
+		// Return unrevealed metadata
+		return `https://techshaman.42024769.xyz/schizodio/json/unrevealed/${hash}.json`;
 	}
 }
 
