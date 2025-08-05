@@ -3,6 +3,7 @@
   import Button from '../components/Button.svelte';
   import ProgressBar from '../components/ProgressBar.svelte';
   import RandomPopup from '../components/RandomPopup.svelte';
+  import RetroMediaPlayer from '../components/RetroMediaPlayer.svelte';
   import { currentTheme } from '../stores/theme';
   import schizodio_title from '../../assets/images/schizodio.png';
   import starknetSymbol from '/SN-Symbol-Gradient.svg';
@@ -978,7 +979,7 @@
   <!-- TOP NAVIGATION -->
   <div class="w-full max-w-screen-xl mx-auto px-4">
     <Window title="🚀 DIMENSIONAL TRAVEL 🚀" width="full">
-      <div class="flex gap-4 justify-center p-2">
+      <div class="flex gap-4 justify-center items-center p-2 flex-wrap">
         <a href="/" use:link>
           <Button>
             <span class="mega-text glitch shake intense-blink">
@@ -986,6 +987,11 @@
             </span>
           </Button>
         </a>
+
+        <!-- Retro Media Player -->
+        <div class="nav-media-player">
+          <RetroMediaPlayer audioSrc="./canttakemyeyesoffyou_1.mp3" />
+        </div>
       </div>
     </Window>
   </div>
@@ -2701,6 +2707,20 @@
 
     .floating-warning {
       font-size: 2rem;
+    }
+  }
+
+  .nav-media-player {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .nav-media-player {
+      order: 2;
+      width: 100%;
+      margin-top: 8px;
     }
   }
 </style>
