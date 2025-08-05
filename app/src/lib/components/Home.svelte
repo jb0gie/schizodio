@@ -8,6 +8,7 @@
   import CopyButton from './CopyButton.svelte';
   import AudioPlayer from './AudioPlayer.svelte';
   import VolumeSlider from './VolumeSlider.svelte';
+  import RetroMediaPlayer from './RetroMediaPlayer.svelte';
   import { link } from 'svelte-spa-router';
   import { onMount } from 'svelte';
 
@@ -30,7 +31,7 @@
     } else {
       showEnterPopover = false;
     }
-    
+
     // Start blinking animation
     setInterval(() => {
       blinkState = !blinkState;
@@ -59,7 +60,8 @@
             🚀 PREPARE FOR DIGITAL CHAOS! 🚀
           </div>
           <div class="schizo-text mb-4">
-            Click ENTER to activate the full schizo experience with immersive audio!
+            Click ENTER to activate the full schizo experience with immersive
+            audio!
           </div>
           <div class="matrix p-2 mb-4 text-sm">
             ⚠️ WARNING: May cause uncontrollable urges to mint NFTs ⚠️
@@ -80,7 +82,7 @@
   <!-- TOP NAVIGATION -->
   <div class="w-full max-w-screen-xl mx-auto px-4">
     <Window title="🚀 DIMENSIONAL TRAVEL 🚀" width="full">
-      <div class="flex gap-4 justify-center p-2">
+      <div class="flex gap-4 justify-center items-center p-2 flex-wrap">
         <a href="/mint" use:link>
           <Button>
             <span class="mega-text {blinkState ? 'blink' : ''} glitch shake">
@@ -88,6 +90,11 @@
             </span>
           </Button>
         </a>
+
+        <!-- Retro Media Player -->
+        <div class="nav-media-player">
+          <RetroMediaPlayer audioSrc="./canttakemyeyesoffyou_1.mp3" />
+        </div>
       </div>
     </Window>
   </div>
@@ -147,7 +154,10 @@
         </div>
       </Window>
       <Window title="💿schizo.mp3" width="full">
-        <AudioPlayer bind:this={audioPlayerRef} audioSrc="./canttakemyeyesoffyou_1.mp3" />
+        <AudioPlayer
+          bind:this={audioPlayerRef}
+          audioSrc="./canttakemyeyesoffyou_1.mp3"
+        />
       </Window>
       <img src={schizodio_sq} alt="SCHIZODIO" width="auto" class="" />
     </div>
@@ -403,6 +413,20 @@
     }
     10% {
       transform: translate(2px, -2px);
+    }
+  }
+
+  .nav-media-player {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  @media (max-width: 768px) {
+    .nav-media-player {
+      order: 2;
+      width: 100%;
+      margin-top: 8px;
     }
   }
 </style>
