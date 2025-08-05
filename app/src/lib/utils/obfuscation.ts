@@ -11,51 +11,19 @@ export interface ObfuscationMap {
 
 let obfuscationMap: ObfuscationMap | null = null;
 
-// Helper function to extract token number from environment variable name
-function extractTokenNumberFromEnvVar(envVarName: string): number | null {
-	const match = envVarName.match(/VITE_OBFUSCATION_MAP_(\d+)_OBFUSCATED/);
-	return match ? parseInt(match[1]) : null;
-}
-
-// Helper function to get obfuscated hash from environment variable
-function getObfuscatedHashFromEnv(tokenId: number): string | null {
-	const envVarName = `VITE_OBFUSCATION_MAP_${tokenId}_OBFUSCATED`;
-	const envValue = import.meta.env[envVarName];
-	return envValue || null;
-}
-
 export async function loadObfuscationMap(): Promise<ObfuscationMap> {
 	if (obfuscationMap) {
 		return obfuscationMap;
 	}
 
 	try {
-		// Build obfuscation map from environment variables
-		const map: ObfuscationMap = {};
-
-		// Check all environment variables for obfuscation data
-		for (const [key, value] of Object.entries(import.meta.env)) {
-			if (key.startsWith('VITE_OBFUSCATION_MAP_') && key.endsWith('_OBFUSCATED')) {
-				const tokenId = extractTokenNumberFromEnvVar(key);
-				if (tokenId !== null && typeof value === 'string') {
-					// Extract hash from the filename (remove .png extension)
-					const hash = value.replace('.png', '');
-
-					map[tokenId.toString()] = {
-						original: `${tokenId}.png`,
-						obfuscated: value,
-						hash: hash,
-						size: 0 // Size not available in env vars, but not used in current code
-					};
-				}
-			}
-		}
-
-		console.log('Obfuscation map loaded from environment variables:', Object.keys(map).length, 'entries');
-		obfuscationMap = map;
+		// Import the JSON file directly
+		const map = await import('./obfuscation-map.json');
+		console.log('Obfuscation map loaded from JSON file:', Object.keys(map.default).length, 'entries');
+		obfuscationMap = map.default;
 		return obfuscationMap;
 	} catch (error) {
-		console.error('Error loading obfuscation map from environment variables:', error);
+		console.error('Error loading obfuscation map from JSON file:', error);
 		// Return empty map instead of throwing to prevent app crash
 		return {};
 	}
