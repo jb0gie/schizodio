@@ -114,7 +114,7 @@ export const CONTRACT_ABI = [
 ] as const;
 
 export const COLLECTION_CONFIG = {
-  CONTRACT_ADDRESS: '0x075f2fa34e0edc2e431d78d0c5ecaa2568fb550021a648c4bf09e50f3bd8f97f',
+  CONTRACT_ADDRESS: '0x010cbf574ee4c15a8fd9209f8161b37193aa04885d078e305ea1e965bbacbdae',
   MAX_SUPPLY: 999,
   BASE_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/revealed/',
   UNREVEALED_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/unrevealed/',

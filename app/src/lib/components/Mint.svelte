@@ -2,8 +2,10 @@
   import Window from './Window.svelte';
   import Button from './Button.svelte';
   import ProgressBar from './ProgressBar.svelte';
+  import RandomPopup from './RandomPopup.svelte';
   import { currentTheme } from '../stores/theme';
   import schizodio_title from '../../assets/images/schizodio.png';
+  import starknetSymbol from '/SN-Symbol-Gradient.svg';
   import { link } from 'svelte-spa-router';
   import { onMount, onDestroy } from 'svelte';
   import { connect, disconnect } from 'starknetkit';
@@ -17,7 +19,6 @@
     ERC20_ABI,
     type TokenMetadata,
   } from '../types/contract';
-
   let walletConnected = false;
   let account: Account | null = null;
   let walletAddress = '';
@@ -25,17 +26,11 @@
   let walletName = '';
   let currentSupply = 0;
   let maxSupply: number = COLLECTION_CONFIG.MAX_SUPPLY;
-  // mintPrice is now calculated dynamically based on selectedPaymentToken
   let isMinting = false;
   let mintStatus = '';
   let lastMintedId: number | null = null;
   let obfuscationMapLoaded = false;
   let isRevealed = false;
-
-  // Reactive statement to calculate selected payment token for display
-  $: selectedPaymentToken = paymentTokens.find(
-    token => token.symbol === selectedToken
-  );
 
   // Provider and contract instances
   let provider: RpcProvider;
@@ -53,61 +48,31 @@
     );
   });
 
-  // Payment tokens
-  let selectedToken = 'ETH';
+  // Simplified payment configuration - only STRK
+  let selectedToken = 'STRK';
   let paymentTokens = [
-    {
-      symbol: 'ETH',
-      address: COLLECTION_CONFIG.PAYMENT_TOKENS.ETH,
-      price: '0.003',
-      decimals: 18,
-      icon: '⟠',
-    },
-    {
-      symbol: 'USDC',
-      address: COLLECTION_CONFIG.PAYMENT_TOKENS.USDC,
-      price: '10',
-      decimals: 6,
-      icon: '💸',
-    },
-    {
-      symbol: 'USDT',
-      address: COLLECTION_CONFIG.PAYMENT_TOKENS.USDT,
-      price: '10',
-      decimals: 6,
-      icon: '💵',
-    },
-    {
-      symbol: 'DAI',
-      address: COLLECTION_CONFIG.PAYMENT_TOKENS.DAI,
-      price: '10',
-      decimals: 18,
-      icon: '🟡',
-    },
-    {
-      symbol: 'WBTC',
-      address: COLLECTION_CONFIG.PAYMENT_TOKENS.WBTC,
-      price: '0.0001',
-      decimals: 8,
-      icon: '₿',
-    },
     {
       symbol: 'STRK',
       address: COLLECTION_CONFIG.PAYMENT_TOKENS.STRK,
-      price: '100',
+      price: '200',
       decimals: 18,
-      icon: '⭐',
+      icon: starknetSymbol,
     },
   ];
 
+  // Reactive statement to calculate selected payment token for display
+  $: selectedPaymentToken = paymentTokens.find(
+    token => token.symbol === selectedToken
+  );
+
   // Schizo elements
-  let showFakePopup = false;
-  let popupMessage = '';
   let blinkState = true;
   let mouseTrail: Array<{ x: number; y: number; id: number }> = [];
   let trailId = 0;
   let visitorCount = Math.floor(Math.random() * 999999) + 100000;
   let currentTime = new Date().toLocaleString();
+  let chaosLevel = 0;
+  let glitchIntensity = 1;
   let schizoMessages = [
     "🚨 CONGRATULATIONS! YOU'VE WON A FREE NFT! (just kidding lol)",
     '⚠️ YOUR COMPUTER MAY BE INFECTED! Click OK to continue anyway',
@@ -127,7 +92,30 @@
     '💰 BANKER HATES THIS: Local schizo makes millions with this one weird trick!',
     '🎭 SIMULATION CONFIRMED: You are in a computer. This NFT is your way out.',
     '🔥 WARNING: This NFT contains 99% pure digital chaos! Handle with care!',
+    '🎪 WELCOME TO THE SCHIZO ZONE! Population: YOU!',
+    '💀 THE VOID IS CALLING! Answer with your wallet!',
+    '🌈 RAINBOW UNICORNS ARE REAL! (in the metaverse)',
+    '⚡ LIGHTNING STRIKES TWICE! But NFTs last forever!',
+    '🎰 JACKPOT! You found the secret NFT formula!',
+    '🛸 UFO SIGHTING: Aliens are buying your NFTs!',
+    '🔥 HOT TIP: The best time to buy NFTs was yesterday!',
+    '💊 MATRIX GLITCH: Reality is just a simulation of NFTs!',
+    '🎮 GAME OVER: You win! (but you still need to mint)',
+    '🌈 DOUBLE RAINBOW! What does it mean? NFTs!',
+    '⚡ ELECTRIC BOOGALOO: NFT edition!',
+    '🎪 CIRCUS MAXIMUS: The greatest NFT show on Earth!',
+    '🚀 TO INFINITY AND BEYOND! (the NFT collection)',
   ];
+
+  // Random popup system
+  let popups: Array<{
+    id: number;
+    message: string;
+    x: number;
+    y: number;
+    visible: boolean;
+  }> = [];
+  let popupId = 0;
 
   let intervals: any[] = [];
 
@@ -179,7 +167,7 @@
       }, 500)
     );
 
-    // Random popup messages
+    // Random popup messages with random locations
     intervals.push(
       setInterval(() => {
         if (Math.random() < 0.3) {
@@ -194,6 +182,26 @@
       setInterval(() => {
         visitorCount += Math.floor(Math.random() * 10) + 1;
         currentTime = new Date().toLocaleString();
+      }, 3000)
+    );
+
+    // Increase chaos level over time
+    intervals.push(
+      setInterval(() => {
+        chaosLevel = Math.min(chaosLevel + 0.1, 10);
+        glitchIntensity = 1 + chaosLevel / 10;
+      }, 10000)
+    );
+
+    // Random glitch effects
+    intervals.push(
+      setInterval(() => {
+        if (Math.random() < 0.2) {
+          document.body.style.filter = `hue-rotate(${Math.random() * 360}deg)`;
+          setTimeout(() => {
+            document.body.style.filter = '';
+          }, 200);
+        }
       }, 3000)
     );
 
@@ -214,19 +222,83 @@
   }
 
   function showRandomPopup() {
-    popupMessage =
+    const message =
       schizoMessages[Math.floor(Math.random() * schizoMessages.length)];
-    showFakePopup = true;
+    const x = Math.random() * 800; // Fixed width for safety
+    const y = Math.random() * 600; // Fixed height for safety
+
+    const popup = {
+      id: popupId++,
+      message,
+      x,
+      y,
+      visible: true,
+    };
+
+    popups = [...popups, popup];
+
+    // Auto-remove popup after 8 seconds
+    setTimeout(() => {
+      popups = popups.filter(p => p.id !== popup.id);
+    }, 8000);
   }
 
-  function closeFakePopup() {
-    showFakePopup = false;
+  function closePopup(popupId: number) {
+    popups = popups.filter(p => p.id !== popupId);
+
     // Sometimes spawn another popup just to be annoying
     if (Math.random() < 0.4) {
       setTimeout(() => {
         showRandomPopup();
       }, 2000);
     }
+  }
+
+  function showMintingSuccessPopup(
+    walletAddress: string,
+    tokenId: number,
+    price: string,
+    token: string
+  ) {
+    const message = `🎊 BREAKING: ${walletAddress.slice(0, 6)}... just minted NFT #${tokenId} for ${price} ${token}! The blockchain is trembling! 🎊`;
+    const x = Math.random() * 800;
+    const y = Math.random() * 600;
+
+    const popup = {
+      id: popupId++,
+      message,
+      x,
+      y,
+      visible: true,
+    };
+
+    popups = [...popups, popup];
+
+    // Auto-remove popup after 8 seconds
+    setTimeout(() => {
+      popups = popups.filter(p => p.id !== popup.id);
+    }, 8000);
+  }
+
+  function showTransactionHashPopup(transactionHash: string) {
+    const message = `🔍 TRANSACTION SENT! Hash: ${transactionHash.slice(0, 20)}... Check your wallet or block explorer to confirm!`;
+    const x = Math.random() * 800;
+    const y = Math.random() * 600;
+
+    const popup = {
+      id: popupId++,
+      message,
+      x,
+      y,
+      visible: true,
+    };
+
+    popups = [...popups, popup];
+
+    // Auto-remove popup after 8 seconds
+    setTimeout(() => {
+      popups = popups.filter(p => p.id !== popup.id);
+    }, 8000);
   }
 
   async function connectWallet() {
@@ -600,8 +672,14 @@
 
         // Random celebration popup
         setTimeout(() => {
-          popupMessage = `🎊 BREAKING: ${walletAddress.slice(0, 6)}... just minted NFT #${lastMintedId} for ${selectedPaymentToken.price} ${selectedToken}! The blockchain is trembling! 🎊`;
-          showFakePopup = true;
+          if (lastMintedId !== null) {
+            showMintingSuccessPopup(
+              walletAddress,
+              lastMintedId,
+              selectedPaymentToken.price,
+              selectedToken
+            );
+          }
         }, 1000);
       } catch (waitError: any) {
         console.error('Transaction wait failed:', waitError);
@@ -610,10 +688,7 @@
           mintStatus = `⏰ TRANSACTION TIMEOUT! Your NFT might still be processing. Check your wallet for transaction: ${tx.transaction_hash.slice(0, 10)}...`;
 
           // Show transaction hash for manual checking
-          setTimeout(() => {
-            popupMessage = `🔍 TRANSACTION SENT! Hash: ${tx.transaction_hash.slice(0, 20)}... Check your wallet or block explorer to confirm!`;
-            showFakePopup = true;
-          }, 2000);
+          showTransactionHashPopup(tx.transaction_hash);
         } else {
           mintStatus = `⚠️ TRANSACTION UNCERTAIN! Error: ${waitError.message || 'Unknown error'}. Check your wallet for transaction status.`;
         }
@@ -701,10 +776,139 @@
     // Contract has been revealed, so all NFTs should be revealed
     return true;
   }
+
+  // Audio mute state
+  let audioMuted = false;
+
+  // Sound effects array - simplified to just the original 5 working URLs
+  const soundEffects = [
+    'https://www.myinstants.com/media/sounds/mktoasty.mp3',
+    'https://www.myinstants.com/media/sounds/schizolobotomy.mp3',
+    'https://www.myinstants.com/media/sounds/stfu-schizo_pVwYUih.mp3',
+    'https://www.myinstants.com/media/sounds/perfect-street-fighter-sound-effect.mp3',
+    'https://www.myinstants.com/media/sounds/lose-street-fighter.mp3',
+    'https://www.myinstants.com/media/sounds/shoryureppa-02-ken.mp3',
+    'https://www.myinstants.com/media/sounds/street-fighter-the-movie-arcade-insert-coin-sound-effect.mp3',
+    'https://www.myinstants.com/media/sounds/tiger-uppercut-sagat.mp3',
+    'https://www.myinstants.com/media/sounds/groan-tube-1_kdDdtlv.mp3',
+    'https://www.myinstants.com/media/sounds/groan-tube-2_xK05nvu.mp3',
+  ];
+
+  // Simple audio playback - create audio on demand
+  function playRandomSound() {
+    // Don't play if audio is muted
+    if (audioMuted) {
+      console.log('Audio is muted, skipping sound effect');
+      return;
+    }
+
+    console.log('playRandomSound called');
+
+    const randomIndex = Math.floor(Math.random() * soundEffects.length);
+    const audioUrl = soundEffects[randomIndex];
+
+    console.log('Playing audio at index:', randomIndex, 'URL:', audioUrl);
+
+    // Create a new audio element each time
+    const audio = new Audio(audioUrl);
+    audio.volume = 0.3;
+
+    // Add event listeners for debugging
+    audio.addEventListener('loadstart', () => console.log('Audio loadstart'));
+    audio.addEventListener('canplay', () => console.log('Audio canplay'));
+    audio.addEventListener('error', e => console.log('Audio error:', e));
+    audio.addEventListener('play', () => console.log('Audio started playing'));
+    audio.addEventListener('pause', () => console.log('Audio paused'));
+
+    // Try to play
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('Audio started playing successfully');
+        })
+        .catch(error => {
+          console.log('Audio play failed:', error);
+          console.log('Error name:', error.name);
+          console.log('Error message:', error.message);
+        });
+    }
+  }
+
+  // Toggle audio mute state
+  function toggleGheiboiMode() {
+    audioMuted = !audioMuted;
+    console.log('Gheiboi mode toggled:', audioMuted ? 'MUTED' : 'UNMUTED');
+  }
+
+  // Function to handle mint page clicks
+  function handleMintPageClick() {
+    console.log('Mint page clicked, triggering sound...');
+    playRandomSound();
+  }
+
+  // Function to test audio (for debugging)
+  function testAudio() {
+    console.log('Testing audio...');
+    playRandomSound();
+  }
 </script>
 
-<!-- MATRIX RAIN BACKGROUND -->
+<!-- ENHANCED MATRIX RAIN BACKGROUND - MORE PREVALENT -->
 <div class="matrix-rain"></div>
+<div class="matrix-stream matrix-stream-1">
+  01101100011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-2">
+  01001000011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-3">
+  01101100011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-4">
+  01001000011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-5">
+  01101100011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-6">
+  01001000011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-7">
+  01101100011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-8">
+  01001000011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-9">
+  01101100011010010111011001100101
+</div>
+<div class="matrix-stream matrix-stream-10">
+  01001000011010010111011001100101
+</div>
+
+<!-- FLOATING EMOJIS -->
+<div class="floating-emojis">
+  <div class="emoji emoji-1">🎰</div>
+  <div class="emoji emoji-2">💊</div>
+  <div class="emoji emoji-3">🛸</div>
+  <div class="emoji emoji-4">🎭</div>
+  <div class="emoji emoji-5">🌈</div>
+  <div class="emoji emoji-6">⚡</div>
+  <div class="emoji emoji-7">🎪</div>
+  <div class="emoji emoji-8">🚀</div>
+</div>
+
+<!-- RETRO COMPUTER MONITORS -->
+<div class="retro-monitors">
+  <div class="monitor monitor-1">
+    <div class="screen">LOADING...</div>
+  </div>
+  <div class="monitor monitor-2">
+    <div class="screen">YOU'VE GOT MAIL!</div>
+  </div>
+</div>
 
 <!-- Mouse Trail -->
 {#each mouseTrail as point (point.id)}
@@ -721,20 +925,16 @@
   {currentTime}
 </div>
 
-<!-- Fake Popup -->
-{#if showFakePopup}
-  <div class="popup">
-    <div class="flex flex-col gap-3">
-      <div class="mega-text text-center">🚨 ALERT! 🚨</div>
-      <div class="schizo-text text-center">{popupMessage}</div>
-      <div class="flex gap-2 justify-center">
-        <Button on:click={closeFakePopup}>OK</Button>
-        <Button on:click={closeFakePopup}>Cancel</Button>
-        <Button on:click={closeFakePopup}>Maybe</Button>
-      </div>
-    </div>
-  </div>
-{/if}
+<!-- Random Popups -->
+{#each popups as popup (popup.id)}
+  <RandomPopup
+    message={popup.message}
+    x={popup.x}
+    y={popup.y}
+    visible={popup.visible}
+    on:close={() => closePopup(popup.id)}
+  />
+{/each}
 
 <!-- MAIN SCHIZO CONTENT -->
 <div
@@ -773,14 +973,27 @@
           ? 'blink'
           : ''} glitch-text"
       >
-        🔥 EXCLUSIVE NFT DROP! SCHIZODIO BROTHERS ARE TAKING OVER THE
-        BLOCKCHAIN! 🔥
+        🔥 EXCLUSIVE NFT DROP! SCHIZODIO BROTHERS ARE TAKING OVER THE STARKNET!
+        🔥
+      </div>
+      <div class="p-2 text-center">
+        <div class="text-xs flex gap-2 justify-center">
+          <Button on:click={testAudio}>CLICK HERE</Button>
+          <div class="gheiboi-mode-btn">
+            <Button on:click={toggleGheiboiMode}>
+              {audioMuted ? 'GHEIBOI MODE' : 'SCHIZO MODE'}
+            </Button>
+          </div>
+        </div>
       </div>
     </Window>
   </div>
 
   <!-- MAIN INTERFACE -->
-  <div class="w-full max-w-screen-xl mx-auto px-4">
+  <div
+    class="w-full max-w-screen-xl mx-auto px-4"
+    on:click={handleMintPageClick}
+  >
     <div class="flex flex-col xl:flex-row gap-4 justify-center">
       <!-- PAYMENT & MINT SECTION -->
       <div class="flex flex-col gap-4 flex-1 max-w-2xl">
@@ -846,27 +1059,31 @@
         </Window>
 
         <!-- PAYMENT TOKEN SELECTOR -->
-        <Window title="💰 SACRIFICE METHOD SELECTOR 💰" width="full">
+        <Window title="💰 STRK SACRIFICE CHAMBER 💰" width="full">
           <div class="p-4">
             <h3 class="mega-text text-center rainbow mb-3">
-              CHOOSE YOUR TRIBUTE
+              STRK TRIBUTE REQUIRED
             </h3>
             <div class="token-selector">
               {#each paymentTokens as token}
                 <div
-                  class="token-option float chaotic-hover {selectedToken ===
-                  token.symbol
-                    ? 'selected'
-                    : ''}"
-                  on:click={() => (selectedToken = token.symbol)}
-                  on:keydown={e =>
-                    e.key === 'Enter' && (selectedToken = token.symbol)}
+                  class="token-option float chaotic-hover selected"
                   role="button"
                   tabindex="0"
                 >
-                  <div class="mega-text">{token.icon} {token.symbol}</div>
-                  <div class="schizo-text">{token.price} {token.symbol}</div>
-                  <div class="text-sm">~10 USD</div>
+                  <div class="mega-text">
+                    <img
+                      src={token.icon}
+                      alt="STRK"
+                      class="inline-block w-6 h-6 mr-2"
+                    />
+                    {token.symbol}
+                  </div>
+                  <div class="schizo-text price-text-large">
+                    {token.price}
+                    {token.symbol}
+                  </div>
+                  <div class="text-sm">~200 USD</div>
                 </div>
               {/each}
             </div>
@@ -890,21 +1107,34 @@
         <!-- MINT BUTTON -->
         <Window title="🎭 SUMMONING CHAMBER 🎭" width="full">
           <div class="p-4 text-center">
-            <Button
-              on:click={mintNFT}
-              disabled={!walletConnected ||
-                isMinting ||
-                currentSupply >= maxSupply}
-            >
-              {#if isMinting}
-                🌀 RITUAL IN PROGRESS... 🌀
-              {:else if currentSupply >= maxSupply}
-                💀 ALL BROTHERS ADOPTED 💀
-              {:else}
-                🎯 SUMMON SCHIZO BROTHER ({selectedPaymentToken?.price || '0'}
-                {selectedToken})
-              {/if}
-            </Button>
+            {#if walletConnected}
+              <Button
+                on:click={mintNFT}
+                disabled={isMinting || currentSupply >= maxSupply}
+              >
+                <div class="huge-mint-text">
+                  {#if isMinting}
+                    🌀 RITUAL IN PROGRESS... 🌀
+                  {:else if currentSupply >= maxSupply}
+                    💀 ALL BROTHERS ADOPTED 💀
+                  {:else}
+                    🎯 SUMMON SCHIZO BROTHER ({selectedPaymentToken?.price ||
+                      '0'}
+                    {selectedToken})
+                  {/if}
+                </div>
+              </Button>
+            {:else}
+              <div class="p-6 text-center">
+                <div class="mega-text rainbow mb-4">
+                  🔗 CONNECT YOUR SOUL TO BEGIN 🔗
+                </div>
+                <div class="schizo-text glitch-text">
+                  The mint button will appear once you connect your wallet to
+                  the blockchain matrix.
+                </div>
+              </div>
+            {/if}
 
             {#if mintStatus}
               <div class="mt-3 p-3 matrix shake">
@@ -1114,21 +1344,48 @@
     position: fixed;
     bottom: 10px;
     right: 10px;
-    background: #ff0000;
-    color: white;
-    padding: 5px 10px;
-    font-size: 0.8rem;
-    border: 2px solid #000;
+    background: linear-gradient(45deg, #ff0000, #ffff00, #00ff00);
+    color: #000;
+    padding: 8px 12px;
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: 3px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    animation: counter-pulse 2s ease-in-out infinite;
+    z-index: 1000;
+  }
+
+  @keyframes counter-pulse {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.1);
+    }
   }
 
   .mouse-trail {
     position: fixed;
-    width: 10px;
-    height: 10px;
-    background: radial-gradient(circle, #ff00ff, transparent);
+    width: 15px;
+    height: 15px;
+    background: radial-gradient(circle, #ff00ff, #00ffff, transparent);
     border-radius: 50%;
     pointer-events: none;
     z-index: 1000;
+    box-shadow: 0 0 10px #ff00ff;
+    animation: trail-fade 1s ease-out forwards;
+  }
+
+  @keyframes trail-fade {
+    0% {
+      opacity: 1;
+      transform: scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: scale(0.5);
+    }
   }
 
   .token-selector {
@@ -1380,7 +1637,7 @@
     }
   }
 
-  /* MATRIX RAIN EFFECT */
+  /* ENHANCED MATRIX RAIN EFFECT - MORE PREVALENT */
   .matrix-rain {
     position: fixed;
     top: 0;
@@ -1399,14 +1656,251 @@
     left: 0;
     color: #00ff00;
     font-family: 'Courier New', monospace;
-    font-size: 12px;
-    animation: matrix-fall 5s linear infinite;
-    opacity: 0.3;
+    font-size: 18px;
+    font-weight: bold;
+    animation: matrix-fall 4s linear infinite;
+    opacity: 0.7;
+    text-shadow:
+      0 0 20px #00ff00,
+      0 0 40px #00ff00;
+  }
+
+  .matrix-rain::after {
+    content: '01001000011010010111011001100101';
+    position: absolute;
+    top: -100%;
+    right: 0;
+    color: #ff00ff;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    animation: matrix-fall 6s linear infinite;
+    opacity: 0.6;
+    text-shadow:
+      0 0 20px #ff00ff,
+      0 0 40px #ff00ff;
+  }
+
+  /* Additional matrix rain streams */
+  .matrix-rain::before {
+    content: '01101100011010010111011001100101';
+    position: absolute;
+    top: -100%;
+    left: 25%;
+    color: #00ffff;
+    font-family: 'Courier New', monospace;
+    font-size: 20px;
+    font-weight: bold;
+    animation: matrix-fall-fast 2.5s linear infinite;
+    opacity: 0.8;
+    text-shadow:
+      0 0 25px #00ffff,
+      0 0 50px #00ffff;
+  }
+
+  .matrix-rain::after {
+    content: '01001000011010010111011001100101';
+    position: absolute;
+    top: -100%;
+    right: 25%;
+    color: #ffff00;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    font-weight: bold;
+    animation: matrix-fall-slow 8s linear infinite;
+    opacity: 0.6;
+    text-shadow:
+      0 0 15px #ffff00,
+      0 0 30px #ffff00;
   }
 
   @keyframes matrix-fall {
     to {
       top: 100%;
+    }
+  }
+
+  /* Additional matrix rain animations */
+  @keyframes matrix-fall-fast {
+    to {
+      top: 100%;
+    }
+  }
+
+  @keyframes matrix-fall-slow {
+    to {
+      top: 100%;
+    }
+  }
+
+  @keyframes matrix-fall-diagonal {
+    to {
+      top: 100%;
+      left: 100%;
+    }
+  }
+
+  /* Additional matrix stream elements - MORE PREVALENT */
+  .matrix-stream {
+    position: fixed;
+    top: -100%;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 16px;
+    font-weight: bold;
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0.7;
+    text-shadow:
+      0 0 20px currentColor,
+      0 0 40px currentColor;
+    animation: matrix-fall 6s linear infinite;
+  }
+
+  .matrix-stream-1 {
+    left: 10%;
+    color: #00ff00;
+    font-size: 18px;
+    opacity: 0.8;
+    animation-duration: 3.5s;
+    animation-delay: 0s;
+    text-shadow:
+      0 0 25px #00ff00,
+      0 0 50px #00ff00;
+  }
+
+  .matrix-stream-2 {
+    left: 30%;
+    color: #ff00ff;
+    font-size: 20px;
+    opacity: 0.9;
+    animation-duration: 7s;
+    animation-delay: 1s;
+    text-shadow:
+      0 0 30px #ff00ff,
+      0 0 60px #ff00ff;
+  }
+
+  .matrix-stream-3 {
+    left: 50%;
+    color: #00ffff;
+    font-size: 22px;
+    opacity: 0.8;
+    animation-duration: 5s;
+    animation-delay: 2s;
+    text-shadow:
+      0 0 25px #00ffff,
+      0 0 50px #00ffff;
+  }
+
+  .matrix-stream-4 {
+    left: 70%;
+    color: #ffff00;
+    font-size: 16px;
+    opacity: 0.7;
+    animation-duration: 4s;
+    animation-delay: 3s;
+    text-shadow:
+      0 0 20px #ffff00,
+      0 0 40px #ffff00;
+  }
+
+  .matrix-stream-5 {
+    left: 90%;
+    color: #ff0080;
+    font-size: 18px;
+    opacity: 0.8;
+    animation-duration: 6s;
+    animation-delay: 4s;
+    text-shadow:
+      0 0 25px #ff0080,
+      0 0 50px #ff0080;
+  }
+
+  .matrix-stream-6 {
+    left: 15%;
+    color: #ff6600;
+    font-size: 16px;
+    opacity: 0.7;
+    animation-duration: 4.5s;
+    animation-delay: 0.5s;
+    text-shadow:
+      0 0 20px #ff6600,
+      0 0 40px #ff6600;
+  }
+
+  .matrix-stream-7 {
+    left: 45%;
+    color: #00ff80;
+    font-size: 19px;
+    opacity: 0.8;
+    animation-duration: 5.5s;
+    animation-delay: 1.5s;
+    text-shadow:
+      0 0 25px #00ff80,
+      0 0 50px #00ff80;
+  }
+
+  .matrix-stream-8 {
+    left: 75%;
+    color: #ff0080;
+    font-size: 17px;
+    opacity: 0.7;
+    animation-duration: 6.5s;
+    animation-delay: 2.5s;
+    text-shadow:
+      0 0 22px #ff0080,
+      0 0 44px #ff0080;
+  }
+
+  .matrix-stream-9 {
+    left: 85%;
+    color: #ffff00;
+    font-size: 15px;
+    opacity: 0.6;
+    animation-duration: 3.5s;
+    animation-delay: 3.5s;
+    text-shadow:
+      0 0 18px #ffff00,
+      0 0 36px #ffff00;
+  }
+
+  .matrix-stream-10 {
+    left: 5%;
+    color: #00ffff;
+    font-size: 21px;
+    opacity: 0.9;
+    animation-duration: 7.5s;
+    animation-delay: 0.8s;
+    text-shadow:
+      0 0 30px #00ffff,
+      0 0 60px #00ffff;
+  }
+
+  /* PSYCHEDELIC BACKGROUND */
+  body {
+    background: linear-gradient(
+      45deg,
+      #ff0000,
+      #00ff00,
+      #0000ff,
+      #ffff00,
+      #ff00ff,
+      #00ffff
+    );
+    background-size: 400% 400%;
+    animation: psychedelic 10s ease-in-out infinite;
+  }
+
+  @keyframes psychedelic {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
     }
   }
 
@@ -1454,5 +1948,488 @@
       opacity: 0;
       color: #00ff00;
     }
+  }
+
+  /* FLOATING EMOJIS */
+  .floating-emojis {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 15;
+  }
+
+  .emoji {
+    position: absolute;
+    font-size: 2rem;
+    animation: emoji-bounce 6s ease-in-out infinite;
+    filter: drop-shadow(2px 2px 4px rgba(0, 0, 0, 0.5));
+  }
+
+  /* MOBILE RESPONSIVE - HIDE OVERLAYED ELEMENTS AND IMPROVE ALIGNMENT */
+  @media (max-width: 768px) {
+    .floating-emojis {
+      display: none;
+    }
+
+    .retro-monitors {
+      display: none;
+    }
+
+    .matrix-stream {
+      display: none;
+    }
+
+    .matrix-rain::before,
+    .matrix-rain::after {
+      display: none;
+    }
+
+    .visitor-counter {
+      display: none;
+    }
+
+    .mouse-trail {
+      display: none;
+    }
+
+    /* IMPROVED MOBILE LAYOUT - STRETCH TO FILL BOXES PROPERLY */
+    .w-full {
+      width: 100% !important;
+    }
+
+    .max-w-screen-xl {
+      max-width: 100% !important;
+    }
+
+    /* Main container stretching */
+    .flex-1 {
+      flex: 1 1 100% !important;
+      width: 100% !important;
+      min-width: 100% !important;
+    }
+
+    .max-w-2xl {
+      max-width: 100% !important;
+      width: 100% !important;
+    }
+
+    /* Better spacing for mobile */
+    .px-4 {
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+
+    .p-4 {
+      padding: 0.75rem !important;
+    }
+
+    .gap-4 {
+      gap: 0.75rem !important;
+    }
+
+    /* Improved margins for better alignment */
+    .mb-3 {
+      margin-bottom: 0.75rem !important;
+    }
+
+    .mt-3 {
+      margin-top: 0.75rem !important;
+    }
+
+    .mt-4 {
+      margin-top: 1rem !important;
+    }
+
+    /* Better text sizing for mobile readability */
+    .text-2xl {
+      font-size: 1.75rem !important;
+    }
+
+    .text-xl {
+      font-size: 1.4rem !important;
+    }
+
+    .text-lg {
+      font-size: 1.2rem !important;
+    }
+
+    .text-base {
+      font-size: 1rem !important;
+    }
+
+    .text-sm {
+      font-size: 0.875rem !important;
+    }
+
+    .text-xs {
+      font-size: 0.75rem !important;
+    }
+
+    /* Improved button and window sizes */
+    .mega-text {
+      font-size: 1.7rem !important;
+    }
+
+    .schizo-text {
+      font-size: 1.15rem !important;
+    }
+
+    .huge-mint-text {
+      font-size: 2.4rem !important;
+    }
+
+    .price-text-large {
+      font-size: 1.45rem !important;
+    }
+
+    /* Better flex layout for mobile */
+    .flex-col {
+      flex-direction: column !important;
+    }
+
+    .xl\:flex-row {
+      flex-direction: column !important;
+    }
+
+    /* Improve button alignment */
+    .justify-center {
+      justify-content: center !important;
+    }
+
+    .items-center {
+      align-items: center !important;
+    }
+
+    /* Better spacing for token selector */
+    .token-selector {
+      gap: 0.75rem !important;
+      width: 100% !important;
+    }
+
+    .token-option {
+      padding: 0.75rem !important;
+      margin: 0.25rem !important;
+      width: 100% !important;
+      flex: 1 1 100% !important;
+    }
+
+    /* Improve grid layout */
+    .grid-cols-2 {
+      grid-template-columns: repeat(2, 1fr) !important;
+      gap: 0.75rem !important;
+      width: 100% !important;
+    }
+
+    /* Better image sizing */
+    img {
+      max-width: 100% !important;
+      width: 100% !important;
+      height: auto !important;
+    }
+
+    /* Improve window padding */
+    :global(.window) {
+      margin-bottom: 1rem !important;
+      width: 100% !important;
+    }
+
+    /* Better text alignment */
+    .text-center {
+      text-align: center !important;
+    }
+
+    /* Ensure buttons stretch properly */
+    :global(button) {
+      width: 100% !important;
+      max-width: 100% !important;
+    }
+
+    /* Make sure content areas stretch */
+    .p-4 {
+      width: 100% !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Ensure flex containers use full width */
+    .flex {
+      width: 100% !important;
+    }
+
+    /* Make sure the main interface container stretches */
+    .w-full.max-w-screen-xl {
+      width: 100% !important;
+      max-width: 100% !important;
+      padding-left: 0.5rem !important;
+      padding-right: 0.5rem !important;
+    }
+  }
+
+  .emoji-1 {
+    top: 20%;
+    left: 20%;
+    animation-delay: 0s;
+  }
+  .emoji-2 {
+    top: 30%;
+    right: 25%;
+    animation-delay: 1s;
+  }
+  .emoji-3 {
+    top: 40%;
+    left: 30%;
+    animation-delay: 2s;
+  }
+  .emoji-4 {
+    top: 50%;
+    right: 35%;
+    animation-delay: 3s;
+  }
+  .emoji-5 {
+    top: 60%;
+    left: 40%;
+    animation-delay: 4s;
+  }
+  .emoji-6 {
+    top: 70%;
+    right: 45%;
+    animation-delay: 5s;
+  }
+  .emoji-7 {
+    top: 80%;
+    left: 50%;
+    animation-delay: 6s;
+  }
+  .emoji-8 {
+    top: 90%;
+    right: 55%;
+    animation-delay: 7s;
+  }
+
+  @keyframes emoji-bounce {
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    25% {
+      transform: translateY(-30px) rotate(90deg);
+    }
+    50% {
+      transform: translateY(-60px) rotate(180deg);
+    }
+    75% {
+      transform: translateY(-30px) rotate(270deg);
+    }
+  }
+
+  /* RETRO COMPUTER MONITORS */
+  .retro-monitors {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .monitor {
+    position: absolute;
+    width: 120px;
+    height: 100px;
+    background: #333;
+    border: 3px solid #000;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: monitor-glow 4s ease-in-out infinite;
+  }
+
+  .monitor-1 {
+    top: 10%;
+    right: 10%;
+    animation-delay: 0s;
+  }
+  .monitor-2 {
+    top: 20%;
+    left: 10%;
+    animation-delay: 2s;
+  }
+
+  .screen {
+    background: #000;
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    font-size: 0.8rem;
+    padding: 10px;
+    width: 90%;
+    height: 80%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    animation: screen-flicker 2s infinite;
+  }
+
+  @keyframes monitor-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 10px #00ff00;
+    }
+    50% {
+      box-shadow:
+        0 0 30px #00ff00,
+        0 0 50px #00ff00;
+    }
+  }
+
+  @keyframes screen-flicker {
+    0%,
+    90%,
+    100% {
+      opacity: 1;
+    }
+    5% {
+      opacity: 0.8;
+    }
+    10% {
+      opacity: 1;
+    }
+    15% {
+      opacity: 0.9;
+    }
+    20% {
+      opacity: 1;
+    }
+  }
+
+  /* HUGE MINT BUTTON TEXT */
+  .huge-mint-text {
+    font-size: 2.5rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 2px !important;
+    line-height: 1.2 !important;
+    text-shadow:
+      3px 3px 0px #000,
+      6px 6px 0px #ff00ff !important;
+    animation: text-glitch 2s infinite !important;
+  }
+
+  @keyframes text-glitch {
+    0%,
+    90%,
+    100% {
+      transform: translate(0);
+      text-shadow:
+        3px 3px 0px #000,
+        6px 6px 0px #ff00ff;
+    }
+    10% {
+      transform: translate(-2px, 2px);
+      text-shadow:
+        -3px 3px 0px #ff0000,
+        6px -6px 0px #00ff00;
+    }
+    20% {
+      transform: translate(2px, -2px);
+      text-shadow:
+        3px -3px 0px #0000ff,
+        -6px 6px 0px #ffff00;
+    }
+    30% {
+      transform: translate(-2px, -2px);
+      text-shadow:
+        -3px -3px 0px #ff00ff,
+        6px 6px 0px #00ffff;
+    }
+  }
+
+  /* LARGER PRICE TEXT */
+  .price-text-large {
+    font-size: 1.5rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    text-shadow:
+      2px 2px 0px #000,
+      4px 4px 0px #ff00ff !important;
+    animation: price-glitch 3s infinite !important;
+  }
+
+  @keyframes price-glitch {
+    0%,
+    85%,
+    100% {
+      transform: translate(0);
+      text-shadow:
+        2px 2px 0px #000,
+        4px 4px 0px #ff00ff;
+    }
+    5% {
+      transform: translate(-1px, 1px);
+      text-shadow:
+        -2px 2px 0px #ff0000,
+        4px -4px 0px #00ff00;
+    }
+    15% {
+      transform: translate(1px, -1px);
+      text-shadow:
+        2px -2px 0px #0000ff,
+        -4px 4px 0px #ffff00;
+    }
+    25% {
+      transform: translate(-1px, -1px);
+      text-shadow:
+        -2px -2px 0px #ff00ff,
+        4px 4px 0px #00ffff;
+    }
+  }
+
+  /* GHEIBOI MODE BUTTON - BIG AND OBVIOUS */
+  .gheiboi-mode-btn {
+    transform: scale(1.2);
+    transition: all 0.3s ease;
+  }
+
+  .gheiboi-mode-btn:hover {
+    transform: scale(1.4);
+    filter: brightness(1.3) hue-rotate(180deg);
+  }
+
+  .gheiboi-mode-btn :global(button) {
+    font-size: 1.2rem !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    padding: 12px 20px !important;
+    border: 3px solid #ff0000 !important;
+    background: linear-gradient(
+      45deg,
+      #ff0000,
+      #ff6600,
+      #ffff00,
+      #00ff00,
+      #0066ff,
+      #ff00ff
+    ) !important;
+    background-size: 400% 400% !important;
+    animation: psychedelic 2s ease infinite !important;
+    text-shadow: 2px 2px 0px #000 !important;
+    box-shadow:
+      0 0 20px #ff0000,
+      0 0 40px #ff6600,
+      0 0 60px #ffff00 !important;
+  }
+
+  .gheiboi-mode-btn :global(button):hover {
+    animation: shake 0.5s ease infinite !important;
+    box-shadow:
+      0 0 30px #ff0000,
+      0 0 60px #ff6600,
+      0 0 90px #ffff00 !important;
   }
 </style>
