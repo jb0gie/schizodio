@@ -841,8 +841,10 @@
     'https://www.myinstants.com/media/sounds/groan-tube-2_xK05nvu.mp3',
     'https://www.myinstants.com/media/sounds/hitmarker_1.mp3',
     'https://www.myinstants.com/media/sounds/hit-marker.mp3',
+    'https://www.myinstants.com/media/sounds/zvuk-litvina.mp3',
+    'https://www.myinstants.com/media/sounds/wait-wait-wait-what-the-hell-legend-sound.mp3',
     'https://www.myinstants.com/media/sounds/take-off_2YqCEjc.mp3',
-    'https://www.myinstants.com/media/sounds/man-screaming-aaaah.mp3'
+    'https://www.myinstants.com/media/sounds/man-screaming-aaaah.mp3',
   ];
 
   // Success sound for mint
