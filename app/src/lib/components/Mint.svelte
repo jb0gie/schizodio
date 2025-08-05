@@ -464,7 +464,18 @@
       // Use the configured max supply since max_supply is not a standard ERC721 function
       maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
 
-      console.log('✅ Supply info loaded:', { currentSupply, maxSupply });
+      // Set lastMintedId to the last token ID if there are any tokens minted
+      if (currentSupply > 0) {
+        lastMintedId = currentSupply - 1; // Token IDs are 0-based
+        isRevealed = shouldRevealNFT(lastMintedId);
+        console.log(`✅ Last minted token ID set to: ${lastMintedId}`);
+      }
+
+      console.log('✅ Supply info loaded:', {
+        currentSupply,
+        maxSupply,
+        lastMintedId,
+      });
     } catch (error) {
       console.error('❌ Failed to load supply info:', error);
       // Fallback to default values
