@@ -175,7 +175,7 @@
           ? 'blink'
           : ''} glitch-text"
       >
-        🔥 999 SCHIZO BROTHERS AVAILABLE FOR ADOPTION! ONLY $30! 🔥
+        🔥 999 SCHIZO BROTHERS AVAILABLE FOR ADOPTION! ONLY 200 $STRK! 🔥
       </div>
     </Window>
   </div>

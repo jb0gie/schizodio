@@ -31,6 +31,7 @@
   let lastMintedId: number | null = null;
   let obfuscationMapLoaded = false;
   let isRevealed = false;
+  let isContractPaused = false;
 
   // Provider and contract instances
   let provider: RpcProvider;
@@ -152,6 +153,7 @@
       mintStatus = '⚠️ CHAOS MODE: Using backup reality!';
     }
     await loadSupplyInfo();
+    await checkContractPaused();
     startSchizoMode();
   });
 
@@ -191,6 +193,13 @@
         chaosLevel = Math.min(chaosLevel + 0.1, 10);
         glitchIntensity = 1 + chaosLevel / 10;
       }, 10000)
+    );
+
+    // Check contract paused status periodically
+    intervals.push(
+      setInterval(() => {
+        checkContractPaused();
+      }, 30000) // Check every 30 seconds
     );
 
     // Random glitch effects
@@ -449,8 +458,8 @@
       console.log('📊 Loading supply information...');
 
       // Fetch current supply from the deployed contract
-      const totalSupplyResult = await contract.total_supply();
-      currentSupply = Number(totalSupplyResult.total);
+      const totalSupplyResult = await contract.get_total_minted();
+      currentSupply = Number(totalSupplyResult);
 
       // Use the configured max supply since max_supply is not a standard ERC721 function
       maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
@@ -461,6 +470,18 @@
       // Fallback to default values
       currentSupply = 0;
       maxSupply = COLLECTION_CONFIG.MAX_SUPPLY;
+    }
+  }
+
+  async function checkContractPaused() {
+    try {
+      console.log('🔍 Checking contract paused status...');
+      const pausedResult = await contract.is_paused();
+      isContractPaused = Boolean(pausedResult);
+      console.log('✅ Contract paused status:', isContractPaused);
+    } catch (error) {
+      console.error('❌ Failed to check contract paused status:', error);
+      isContractPaused = false; // Default to not paused if we can't check
     }
   }
 
@@ -971,7 +992,7 @@
       <div
         class="p-2 sm:p-4 matrix text-center mega-text {blinkState
           ? 'blink'
-          : ''} glitch-text"
+          : ''}"
       >
         🔥 EXCLUSIVE NFT DROP! SCHIZODIO BROTHERS ARE TAKING OVER THE STARKNET!
         🔥
@@ -1110,13 +1131,17 @@
             {#if walletConnected}
               <Button
                 on:click={mintNFT}
-                disabled={isMinting || currentSupply >= maxSupply}
+                disabled={isMinting ||
+                  currentSupply >= maxSupply ||
+                  isContractPaused}
               >
                 <div class="huge-mint-text">
                   {#if isMinting}
                     🌀 RITUAL IN PROGRESS... 🌀
                   {:else if currentSupply >= maxSupply}
                     💀 ALL BROTHERS ADOPTED 💀
+                  {:else if isContractPaused}
+                    🚨 CONTRACT PAUSED 🚨
                   {:else}
                     🎯 SUMMON SCHIZO BROTHER ({selectedPaymentToken?.price ||
                       '0'}
@@ -1169,7 +1194,7 @@
                 NEXT BROTHER: #{currentSupply}
               </div>
               <div class="schizo-text">
-                Status: {isRevealed ? '🎉 REVEALED! 🎉' : '🔒 MYSTERY MODE 🔒'}
+                Status: {isRevealed ? '🎉 REVEALED! 🎉' : '🎭 BROTHER READY 🎭'}
               </div>
             </div>
           </div>
@@ -1244,6 +1269,27 @@
       </div>
     </Window>
   </div>
+
+  <!-- CRAZY PAUSED OVERLAY -->
+  {#if isContractPaused}
+    <div class="paused-overlay">
+      <div class="paused-content">
+        <div class="paused-title">🚨 CONTRACT PAUSED 🚨</div>
+        <div class="paused-message">
+          THE SCHIZO BROTHERS ARE TAKING A BREAK FROM REALITY!
+          <br />
+          THE MATRIX IS TEMPORARILY OFFLINE!
+          <br />
+          PLEASE WAIT WHILE WE RESTORE SANITY...
+        </div>
+        <div class="paused-effects">
+          <div class="spinning-skull">💀</div>
+          <div class="floating-warning">⚠️</div>
+          <div class="chaos-text">CHAOS MODE ACTIVATED</div>
+        </div>
+      </div>
+    </div>
+  {/if}
 </div>
 
 <!-- SCHIZO 90s STYLES -->
@@ -2431,5 +2477,216 @@
       0 0 30px #ff0000,
       0 0 60px #ff6600,
       0 0 90px #ffff00 !important;
+  }
+
+  /* CRAZY PAUSED OVERLAY STYLES */
+  .paused-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      45deg,
+      #ff0000,
+      #ff6600,
+      #ffff00,
+      #00ff00,
+      #0066ff,
+      #ff00ff,
+      #ff0080
+    );
+    background-size: 400% 400%;
+    animation: paused-rainbow 0.5s ease infinite;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+  }
+
+  .paused-content {
+    background: rgba(0, 0, 0, 0.9);
+    border: 5px solid #ff0000;
+    padding: 40px;
+    text-align: center;
+    max-width: 600px;
+    animation: paused-bounce 0.3s ease infinite;
+    box-shadow:
+      0 0 50px #ff0000,
+      0 0 100px #ff6600,
+      0 0 150px #ffff00;
+  }
+
+  .paused-title {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #ff0000;
+    text-shadow:
+      0 0 20px #ff0000,
+      0 0 40px #ff6600,
+      0 0 60px #ffff00;
+    animation: paused-title-glitch 0.2s ease infinite;
+    margin-bottom: 20px;
+  }
+
+  .paused-message {
+    font-size: 1.5rem;
+    color: #ffff00;
+    text-shadow:
+      0 0 15px #ffff00,
+      0 0 30px #00ff00;
+    animation: paused-text-shake 0.1s ease infinite;
+    margin-bottom: 30px;
+    line-height: 1.5;
+  }
+
+  .paused-effects {
+    position: relative;
+    height: 100px;
+  }
+
+  .spinning-skull {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 4rem;
+    animation: paused-skull-spin 1s linear infinite;
+  }
+
+  .floating-warning {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 3rem;
+    animation: paused-warning-float 2s ease-in-out infinite;
+  }
+
+  .chaos-text {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.2rem;
+    color: #00ffff;
+    text-shadow: 0 0 10px #00ffff;
+    animation: paused-chaos-text 0.5s ease infinite;
+  }
+
+  @keyframes paused-rainbow {
+    0% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+    100% {
+      background-position: 0% 50%;
+    }
+  }
+
+  @keyframes paused-bounce {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    50% {
+      transform: scale(1.05);
+    }
+  }
+
+  @keyframes paused-title-glitch {
+    0%,
+    90%,
+    100% {
+      transform: translate(0);
+      text-shadow:
+        0 0 20px #ff0000,
+        0 0 40px #ff6600,
+        0 0 60px #ffff00;
+    }
+    10% {
+      transform: translate(-3px, 3px);
+      text-shadow:
+        0 0 20px #00ff00,
+        0 0 40px #0066ff,
+        0 0 60px #ff00ff;
+    }
+    20% {
+      transform: translate(3px, -3px);
+      text-shadow:
+        0 0 20px #ffff00,
+        0 0 40px #ff0080,
+        0 0 60px #00ffff;
+    }
+  }
+
+  @keyframes paused-text-shake {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-2px);
+    }
+    75% {
+      transform: translateX(2px);
+    }
+  }
+
+  @keyframes paused-skull-spin {
+    from {
+      transform: translateX(-50%) rotate(0deg);
+    }
+    to {
+      transform: translateX(-50%) rotate(360deg);
+    }
+  }
+
+  @keyframes paused-warning-float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  @keyframes paused-chaos-text {
+    0%,
+    100% {
+      opacity: 1;
+      color: #00ffff;
+    }
+    50% {
+      opacity: 0.5;
+      color: #ff00ff;
+    }
+  }
+
+  /* Mobile responsive for paused overlay */
+  @media (max-width: 768px) {
+    .paused-content {
+      padding: 20px;
+      max-width: 90%;
+    }
+
+    .paused-title {
+      font-size: 2rem;
+    }
+
+    .paused-message {
+      font-size: 1.2rem;
+    }
+
+    .spinning-skull {
+      font-size: 3rem;
+    }
+
+    .floating-warning {
+      font-size: 2rem;
+    }
   }
 </style>

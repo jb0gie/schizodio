@@ -7,31 +7,33 @@ export interface TokenMetadata {
   metadataUrl: string;
 }
 
-// Basic contract ABI for Schizodio NFT
+// Updated contract ABI for Schizodio NFT
 export const CONTRACT_ABI = [
   {
-    "type": "function",
-    "name": "total_supply",
-    "inputs": [],
-    "outputs": [
+    "type": "struct",
+    "name": "core::integer::u256",
+    "members": [
       {
-        "type": "core::integer::u256",
-        "name": "total"
+        "name": "low",
+        "type": "core::integer::u128"
+      },
+      {
+        "name": "high",
+        "type": "core::integer::u128"
       }
-    ],
-    "state_mutability": "view"
+    ]
   },
   {
     "type": "function",
     "name": "mint",
     "inputs": [
       {
-        "type": "core::integer::u256",
-        "name": "quantity"
+        "name": "quantity",
+        "type": "core::integer::u256"
       },
       {
-        "type": "core::starknet::contract_address::ContractAddress",
-        "name": "payment_token"
+        "name": "payment_token",
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ],
     "outputs": [],
@@ -39,82 +41,1277 @@ export const CONTRACT_ABI = [
   },
   {
     "type": "function",
-    "name": "mint_with_payment",
+    "name": "admin_mint",
     "inputs": [
       {
-        "type": "core::starknet::contract_address::ContractAddress",
-        "name": "payment_token"
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "quantity",
+        "type": "core::integer::u256"
       }
     ],
     "outputs": [],
     "state_mutability": "external"
   },
   {
-    "type": "function",
-    "name": "mint_paid",
-    "inputs": [],
-    "outputs": [],
-    "state_mutability": "external"
+    "type": "enum",
+    "name": "core::bool",
+    "variants": [
+      {
+        "name": "False",
+        "type": "()"
+      },
+      {
+        "name": "True",
+        "type": "()"
+      }
+    ]
   },
   {
     "type": "function",
-    "name": "mint_nft",
-    "inputs": [],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "function",
-    "name": "safe_mint",
-    "inputs": [],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "function",
-    "name": "mint_to",
-    "inputs": [],
-    "outputs": [],
-    "state_mutability": "external"
-  },
-  {
-    "type": "function",
-    "name": "owner_of",
+    "name": "set_payment_token",
     "inputs": [
       {
-        "type": "core::integer::u256",
-        "name": "token_id"
+        "name": "token_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "is_accepted",
+        "type": "core::bool"
+      },
+      {
+        "name": "price",
+        "type": "core::integer::u256"
       }
     ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "set_payment_token_price",
+    "inputs": [
+      {
+        "name": "token_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "price",
+        "type": "core::integer::u256"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "set_mint_active",
+    "inputs": [
+      {
+        "name": "active",
+        "type": "core::bool"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "get_max_supply",
+    "inputs": [],
     "outputs": [
       {
-        "type": "core::starknet::contract_address::ContractAddress",
-        "name": "owner"
+        "type": "core::integer::u256"
       }
     ],
     "state_mutability": "view"
   },
   {
     "type": "function",
-    "name": "token_uri",
+    "name": "get_total_minted",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::integer::u256"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "get_payment_token_price",
     "inputs": [
       {
-        "type": "core::integer::u256",
-        "name": "token_id"
+        "name": "token_address",
+        "type": "core::starknet::contract_address::ContractAddress"
       }
     ],
     "outputs": [
       {
+        "type": "core::integer::u256"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "is_payment_token_accepted",
+    "inputs": [
+      {
+        "name": "token_address",
+        "type": "core::starknet::contract_address::ContractAddress"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::bool"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "is_mint_active",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::bool"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "struct",
+    "name": "core::byte_array::ByteArray",
+    "members": [
+      {
+        "name": "data",
+        "type": "core::array::Array::<core::bytes_31::bytes31>"
+      },
+      {
+        "name": "pending_word",
+        "type": "core::felt252"
+      },
+      {
+        "name": "pending_word_len",
+        "type": "core::integer::u32"
+      }
+    ]
+  },
+  {
+    "type": "function",
+    "name": "tokenURI",
+    "inputs": [
+      {
+        "name": "token_id",
+        "type": "core::integer::u256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "get_token_uri",
+    "inputs": [
+      {
+        "name": "token_id",
+        "type": "core::integer::u256"
+      }
+    ],
+    "outputs": [
+      {
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "set_base_uri",
+    "inputs": [
+      {
+        "name": "uri",
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "set_contract_uri",
+    "inputs": [
+      {
+        "name": "uri",
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "outputs": [],
+    "state_mutability": "external"
+  },
+  {
+    "type": "function",
+    "name": "get_base_uri",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "get_contract_uri",
+    "inputs": [],
+    "outputs": [
+      {
+        "type": "core::byte_array::ByteArray"
+      }
+    ],
+    "state_mutability": "view"
+  },
+  {
+    "type": "impl",
+    "name": "ERC721Impl",
+    "interface_name": "openzeppelin_token::erc721::interface::IERC721"
+  },
+  {
+    "type": "struct",
+    "name": "core::array::Span::<core::felt252>",
+    "members": [
+      {
+        "name": "snapshot",
+        "type": "@core::array::Array::<core::felt252>"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_token::erc721::interface::IERC721",
+    "items": [
+      {
+        "type": "function",
+        "name": "balance_of",
+        "inputs": [
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "owner_of",
+        "inputs": [
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "safe_transfer_from",
+        "inputs": [
+          {
+            "name": "from",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "data",
+            "type": "core::array::Span::<core::felt252>"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "transfer_from",
+        "inputs": [
+          {
+            "name": "from",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "approve",
+        "inputs": [
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "set_approval_for_all",
+        "inputs": [
+          {
+            "name": "operator",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "approved",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "get_approved",
+        "inputs": [
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "is_approved_for_all",
+        "inputs": [
+          {
+            "name": "owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "operator",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "ERC721MetadataImpl",
+    "interface_name": "openzeppelin_token::erc721::interface::IERC721Metadata"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_token::erc721::interface::IERC721Metadata",
+    "items": [
+      {
+        "type": "function",
+        "name": "name",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "symbol",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "token_uri",
+        "inputs": [
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::byte_array::ByteArray"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "ERC721CamelOnlyImpl",
+    "interface_name": "openzeppelin_token::erc721::interface::IERC721CamelOnly"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_token::erc721::interface::IERC721CamelOnly",
+    "items": [
+      {
+        "type": "function",
+        "name": "balanceOf",
+        "inputs": [
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "ownerOf",
+        "inputs": [
+          {
+            "name": "tokenId",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "safeTransferFrom",
+        "inputs": [
+          {
+            "name": "from",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "tokenId",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "data",
+            "type": "core::array::Span::<core::felt252>"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "transferFrom",
+        "inputs": [
+          {
+            "name": "from",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "to",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "tokenId",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "setApprovalForAll",
+        "inputs": [
+          {
+            "name": "operator",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "approved",
+            "type": "core::bool"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "getApproved",
+        "inputs": [
+          {
+            "name": "tokenId",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "isApprovedForAll",
+        "inputs": [
+          {
+            "name": "owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "operator",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "PausableImpl",
+    "interface_name": "openzeppelin_security::interface::IPausable"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_security::interface::IPausable",
+    "items": [
+      {
+        "type": "function",
+        "name": "is_paused",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "AccessControlImpl",
+    "interface_name": "openzeppelin_access::accesscontrol::interface::IAccessControl"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_access::accesscontrol::interface::IAccessControl",
+    "items": [
+      {
+        "type": "function",
+        "name": "has_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "get_role_admin",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "grant_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "revoke_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "renounce_role",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "AccessControlCamelImpl",
+    "interface_name": "openzeppelin_access::accesscontrol::interface::IAccessControlCamel"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_access::accesscontrol::interface::IAccessControlCamel",
+    "items": [
+      {
+        "type": "function",
+        "name": "hasRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::bool"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "getRoleAdmin",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::felt252"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "grantRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "revokeRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "renounceRole",
+        "inputs": [
+          {
+            "name": "role",
+            "type": "core::felt252"
+          },
+          {
+            "name": "account",
+            "type": "core::starknet::contract_address::ContractAddress"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "ERC721EnumerableImpl",
+    "interface_name": "openzeppelin_token::erc721::extensions::erc721_enumerable::interface::IERC721Enumerable"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_token::erc721::extensions::erc721_enumerable::interface::IERC721Enumerable",
+    "items": [
+      {
+        "type": "function",
+        "name": "total_supply",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "token_by_index",
+        "inputs": [
+          {
+            "name": "index",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "token_of_owner_by_index",
+        "inputs": [
+          {
+            "name": "owner",
+            "type": "core::starknet::contract_address::ContractAddress"
+          },
+          {
+            "name": "index",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u256"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "impl",
+    "name": "ERC2981Impl",
+    "interface_name": "openzeppelin_token::common::erc2981::interface::IERC2981"
+  },
+  {
+    "type": "interface",
+    "name": "openzeppelin_token::common::erc2981::interface::IERC2981",
+    "items": [
+      {
+        "type": "function",
+        "name": "royalty_info",
+        "inputs": [
+          {
+            "name": "token_id",
+            "type": "core::integer::u256"
+          },
+          {
+            "name": "sale_price",
+            "type": "core::integer::u256"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "(core::starknet::contract_address::ContractAddress, core::integer::u256)"
+          }
+        ],
+        "state_mutability": "view"
+      }
+    ]
+  },
+  {
+    "type": "constructor",
+    "name": "constructor",
+    "inputs": [
+      {
+        "name": "default_admin",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "pauser",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "minter",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "default_royalty_receiver",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "royalty_admin",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "treasury",
+        "type": "core::starknet::contract_address::ContractAddress"
+      },
+      {
+        "name": "base_uri",
+        "type": "core::byte_array::ByteArray"
+      },
+      {
+        "name": "contract_uri",
+        "type": "core::byte_array::ByteArray"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::erc721::erc721::ERC721Component::Transfer",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "from",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "token_id",
+        "type": "core::integer::u256",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::erc721::erc721::ERC721Component::Approval",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "approved",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "token_id",
+        "type": "core::integer::u256",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::erc721::erc721::ERC721Component::ApprovalForAll",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "owner",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "operator",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "approved",
+        "type": "core::bool",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::erc721::erc721::ERC721Component::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "Transfer",
+        "type": "openzeppelin_token::erc721::erc721::ERC721Component::Transfer",
+        "kind": "nested"
+      },
+      {
+        "name": "Approval",
+        "type": "openzeppelin_token::erc721::erc721::ERC721Component::Approval",
+        "kind": "nested"
+      },
+      {
+        "name": "ApprovalForAll",
+        "type": "openzeppelin_token::erc721::erc721::ERC721Component::ApprovalForAll",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_introspection::src5::SRC5Component::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::pausable::PausableComponent::Paused",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::pausable::PausableComponent::Unpaused",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_security::pausable::PausableComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "Paused",
+        "type": "openzeppelin_security::pausable::PausableComponent::Paused",
+        "kind": "nested"
+      },
+      {
+        "name": "Unpaused",
+        "type": "openzeppelin_security::pausable::PausableComponent::Unpaused",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "account",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "sender",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "previous_admin_role",
+        "type": "core::felt252",
+        "kind": "data"
+      },
+      {
+        "name": "new_admin_role",
+        "type": "core::felt252",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "RoleGranted",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleGranted",
+        "kind": "nested"
+      },
+      {
+        "name": "RoleRevoked",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleRevoked",
+        "kind": "nested"
+      },
+      {
+        "name": "RoleAdminChanged",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::RoleAdminChanged",
+        "kind": "nested"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::erc721::extensions::erc721_enumerable::erc721_enumerable::ERC721EnumerableComponent::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "openzeppelin_token::common::erc2981::erc2981::ERC2981Component::Event",
+    "kind": "enum",
+    "variants": []
+  },
+  {
+    "type": "event",
+    "name": "hello_schizo::SchizodioBrother::Mint",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "token_id",
+        "type": "core::integer::u256",
+        "kind": "data"
+      },
+      {
+        "name": "price",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "hello_schizo::SchizodioBrother::AdminMint",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "to",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "data"
+      },
+      {
+        "name": "token_id",
+        "type": "core::integer::u256",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "hello_schizo::SchizodioBrother::Revealed",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "revealed_uri",
         "type": "core::byte_array::ByteArray",
-        "name": "uri"
+        "kind": "data"
       }
-    ],
-    "state_mutability": "view"
+    ]
+  },
+  {
+    "type": "event",
+    "name": "hello_schizo::SchizodioBrother::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "ERC721Event",
+        "type": "openzeppelin_token::erc721::erc721::ERC721Component::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "SRC5Event",
+        "type": "openzeppelin_introspection::src5::SRC5Component::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "PausableEvent",
+        "type": "openzeppelin_security::pausable::PausableComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "AccessControlEvent",
+        "type": "openzeppelin_access::accesscontrol::accesscontrol::AccessControlComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "ERC721EnumerableEvent",
+        "type": "openzeppelin_token::erc721::extensions::erc721_enumerable::erc721_enumerable::ERC721EnumerableComponent::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "ERC2981Event",
+        "type": "openzeppelin_token::common::erc2981::erc2981::ERC2981Component::Event",
+        "kind": "flat"
+      },
+      {
+        "name": "Mint",
+        "type": "hello_schizo::SchizodioBrother::Mint",
+        "kind": "nested"
+      },
+      {
+        "name": "AdminMint",
+        "type": "hello_schizo::SchizodioBrother::AdminMint",
+        "kind": "nested"
+      },
+      {
+        "name": "Revealed",
+        "type": "hello_schizo::SchizodioBrother::Revealed",
+        "kind": "nested"
+      }
+    ]
   }
 ] as const;
 
 export const COLLECTION_CONFIG = {
-  CONTRACT_ADDRESS: '0x010cbf574ee4c15a8fd9209f8161b37193aa04885d078e305ea1e965bbacbdae',
+  CONTRACT_ADDRESS: '0x01b1b30393bf917b3c9fade0fb3d2048396006be1f02c71f6e15b2edecd5d4b0',
   MAX_SUPPLY: 999,
   BASE_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/revealed/',
   UNREVEALED_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/unrevealed/',
