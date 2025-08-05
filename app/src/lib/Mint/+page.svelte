@@ -828,7 +828,9 @@
     'https://www.myinstants.com/media/sounds/groan-tube-1_kdDdtlv.mp3',
     'https://www.myinstants.com/media/sounds/groan-tube-2_xK05nvu.mp3',
     'https://www.myinstants.com/media/sounds/hitmarker_1.mp3',
-    'https://www.myinstants.com/media/sounds/hit-marker.mp3'
+    'https://www.myinstants.com/media/sounds/hit-marker.mp3',
+    'https://www.myinstants.com/media/sounds/zvuk-litvina.mp3',
+    'https://www.myinstants.com/media/sounds/wait-wait-wait-what-the-hell-legend-sound.mp3'
   ];
 
   // Simple audio playback - create audio on demand
@@ -1189,7 +1191,7 @@
           </div>
         </Window>
         <Window title="📉 SCHIZODIO CHART 📈" width="full">
-          <style>#dexscreener-embed{position:relative;width:100%;padding-bottom:125%;}#dexscreener-embed iframe{position:absolute;width:100%;height:100%;top:0;left:0;border:0;}</style><div id="dexscreener-embed"><iframe src="https://dexscreener.com/starknet/0x00acc2fa3bb7f6a6726c14d9e142d51fe3984dbfa32b5907e1e76425177875e2-0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d-2347948331754475397897284791279200659-5982-0x0?embed=1&loadChartSettings=0&tabs=0&info=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=strk&interval=15"></iframe></div>
+          <style>#dexscreener-embed{position:relative;width:100%;padding-bottom:125%;}#dexscreener-embed iframe{position:absolute;width:100%;height:100%;top:0;left:0;border:0;}</style><div id="dexscreener-embed"><iframe src="https://dexscreener.com/starknet/0x00acc2fa3bb7f6a6726c14d9e142d51fe3984dbfa32b5907e1e76425177875e2-0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d-2347948331754475397897284791279200659-5982-0x0?embed=1&loadChartSettings=0&tabs=0&info=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=strk&interval=240"></iframe></div>
         </Window>
       </div>
 
