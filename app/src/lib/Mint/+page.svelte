@@ -844,7 +844,6 @@
     'https://www.myinstants.com/media/sounds/zvuk-litvina.mp3',
     'https://www.myinstants.com/media/sounds/take-off_2YqCEjc.mp3',
     'https://www.myinstants.com/media/sounds/man-screaming-aaaah.mp3',
-    'https://www.myinstants.com/media/sounds/wait-wait-wait-what-the-hell-legend-sound.mp3',
   ];
 
   // Success sound for mint
