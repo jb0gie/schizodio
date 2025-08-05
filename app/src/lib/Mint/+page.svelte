@@ -13,6 +13,8 @@
   import { InjectedConnector } from 'starknetkit/injected';
   import { WebWalletConnector } from 'starknetkit/webwallet';
   import { loadObfuscationMap, getImageUrl } from '../utils/obfuscation';
+  import { audioStore } from '../stores/audio';
+  import MuteButton from '../components/MuteButton.svelte';
   import {
     COLLECTION_CONFIG,
     CONTRACT_ABI,
@@ -812,9 +814,6 @@
     return true;
   }
 
-  // Audio mute state
-  let audioMuted = false;
-
   // Sound effects array - simplified to just the original 5 working URLs
   const soundEffects = [
     'https://www.myinstants.com/media/sounds/mktoasty.mp3',
@@ -832,7 +831,7 @@
   // Simple audio playback - create audio on demand
   function playRandomSound() {
     // Don't play if audio is muted
-    if (audioMuted) {
+    if ($audioStore.isMuted) {
       console.log('Audio is muted, skipping sound effect');
       return;
     }
@@ -873,8 +872,8 @@
 
   // Toggle audio mute state
   function toggleGheiboiMode() {
-    audioMuted = !audioMuted;
-    console.log('Gheiboi mode toggled:', audioMuted ? 'MUTED' : 'UNMUTED');
+    audioStore.toggleMute();
+    console.log('Gheiboi mode toggled:', $audioStore.isMuted ? 'MUTED' : 'UNMUTED');
   }
 
   // Function to handle mint page clicks
@@ -1016,7 +1015,7 @@
           <Button on:click={testAudio}>CLICK HERE</Button>
           <div class="gheiboi-mode-btn">
             <Button on:click={toggleGheiboiMode}>
-              {audioMuted ? 'GHEIBOI MODE' : 'SCHIZO MODE'}
+              {$audioStore.isMuted ? 'GHEIBOI MODE' : 'SCHIZO MODE'}
             </Button>
           </div>
         </div>
@@ -1283,6 +1282,9 @@
       </div>
     </Window>
   </div>
+
+  <!-- MUTE BUTTON -->
+  <MuteButton />
 
   <!-- CRAZY PAUSED OVERLAY -->
   {#if isContractPaused}

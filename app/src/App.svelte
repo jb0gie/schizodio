@@ -1,8 +1,10 @@
 <script lang="ts">
   import router from 'svelte-spa-router';
   import { currentTheme } from './lib/stores/theme';
+  import { audioStore } from './lib/stores/audio';
   import Home from './lib/components/Home.svelte';
   import Mint from './lib/Mint/+page.svelte';
+  import { onMount } from 'svelte';
 
   const routes = {
     '/': Home,
@@ -13,6 +15,11 @@
   $: ({
     colors: { background, window, text, highlight, highlightText },
   } = $currentTheme);
+
+  onMount(() => {
+    // Initialize audio store
+    audioStore.play();
+  });
 </script>
 
 <main

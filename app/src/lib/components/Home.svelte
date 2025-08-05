@@ -6,15 +6,14 @@
   import schizodio_sq from '../../assets/images/schizodio_sq.jpg';
   import danceGif from '../../assets/images/dance-schizo.gif';
   import CopyButton from './CopyButton.svelte';
-  import AudioPlayer from './AudioPlayer.svelte';
   import VolumeSlider from './VolumeSlider.svelte';
   import { link } from 'svelte-spa-router';
   import { onMount } from 'svelte';
+  import { audioStore } from '../stores/audio';
 
   let volumeValue = 1;
   let blinkState = true;
   let showEnterPopover = true;
-  let audioPlayerRef: AudioPlayer;
 
   // Global variable to track if popover has been seen this session
   let hasSeenPopover = (globalThis as any).schizoPopoverSeen || false;
@@ -43,9 +42,7 @@
     hasSeenPopover = true;
     showEnterPopover = false;
     // Trigger audio play
-    if (audioPlayerRef) {
-      audioPlayerRef.togglePlay();
-    }
+    audioStore.play();
   }
 </script>
 
@@ -147,7 +144,22 @@
         </div>
       </Window>
       <Window title="💿schizo.mp3" width="full">
-        <AudioPlayer bind:this={audioPlayerRef} audioSrc="./canttakemyeyesoffyou_1.mp3" />
+        <div class="audio-player w-full gap-2">
+          <button class="win95-button" on:click={audioStore.togglePlay}>
+            {#if $audioStore.isPlaying}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <rect x="6" y="4" width="4" height="16"/>
+                <rect x="14" y="4" width="4" height="16"/>
+              </svg>
+            {:else}
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            {/if}
+          </button>
+          
+          <VolumeSlider value={volumeValue} steps={10} on:change={(e) => audioStore.setVolume(e.detail)} />
+        </div>
       </Window>
       <img src={schizodio_sq} alt="SCHIZODIO" width="auto" class="" />
     </div>
@@ -404,5 +416,35 @@
     10% {
       transform: translate(2px, -2px);
     }
+  }
+
+  .audio-player {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .audio-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #1a1a1a;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .audio-button:hover {
+    transform: scale(1.05);
+    background: #2a2a2a;
+  }
+
+  .audio-button svg {
+    width: 24px;
+    height: 24px;
+    color: #ffffff;
   }
 </style>
