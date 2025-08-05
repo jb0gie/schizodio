@@ -2,3 +2,4 @@ contracts/
 GUIDEs/
 scripts/
 bash.exe.stackdump
+.env
