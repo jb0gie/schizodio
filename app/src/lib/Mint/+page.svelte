@@ -827,6 +827,8 @@
     'https://www.myinstants.com/media/sounds/tiger-uppercut-sagat.mp3',
     'https://www.myinstants.com/media/sounds/groan-tube-1_kdDdtlv.mp3',
     'https://www.myinstants.com/media/sounds/groan-tube-2_xK05nvu.mp3',
+    'https://www.myinstants.com/media/sounds/hitmarker_1.mp3',
+    'https://www.myinstants.com/media/sounds/hit-marker.mp3'
   ];
 
   // Simple audio playback - create audio on demand
