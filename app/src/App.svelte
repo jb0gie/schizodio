@@ -2,7 +2,7 @@
   import router from 'svelte-spa-router';
   import { currentTheme } from './lib/stores/theme';
   import Home from './lib/components/Home.svelte';
-  import Mint from './lib/components/Mint.svelte';
+  import Mint from './lib/Mint/+page.svelte';
 
   const routes = {
     '/': Home,
@@ -19,7 +19,7 @@
   class="static h-screen w-full p-5 font-windows overflow-x-hidden"
   style="--win95-bg: {background}; --win95-window: {window}; --win95-text: {text}; --win95-highlight: {highlight}; --win95-highlight-text: {highlightText}; -webkit-font-smoothing: none || antialiased || subpixel-antialiased -moz-osx-font-smoothing: auto || inherit || unset || grayscale font-smoothing: auto || inherit || unset || grayscale"
 >
-  <svelte:component this={router} {routes} />
+  <svelte:component this={router} {routes} mode="history" />
 </main>
 
 <style>

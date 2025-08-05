@@ -7,7 +7,7 @@ export interface TokenMetadata {
   metadataUrl: string;
 }
 
-// Updated contract ABI for Schizodio NFT
+// Updated contract ABI for Schizodio NFT - Mainnet
 export const CONTRACT_ABI = [
   {
     "type": "struct",
@@ -1311,12 +1311,12 @@ export const CONTRACT_ABI = [
 ] as const;
 
 export const COLLECTION_CONFIG = {
-  CONTRACT_ADDRESS: '0x01b1b30393bf917b3c9fade0fb3d2048396006be1f02c71f6e15b2edecd5d4b0',
+  CONTRACT_ADDRESS: '0x077485a949c130cF0d98819d2B0749f5860b0734ea28cb678dd3f39379131Bfa',
   MAX_SUPPLY: 999,
   BASE_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/revealed/',
   UNREVEALED_METADATA_URI: 'https://techshaman.42024769.xyz/schizodio/json/unrevealed/',
   PAYMENT_TOKENS: {
-    // Sepolia testnet addresses (same as mainnet for now)
+    // Mainnet addresses
     ETH: '0x049d36570d4e46f48e99674bd3fcc84644ddd6b96f7c741b1562b82f9e004dc7',
     USDC: '0x053c91253bc9682c04929ca02ed00b3e423f6710d2ee7e0d5ebb06f3ecf368a8',
     USDT: '0x068f5c6a61780768455de69077e07e89787839bf8166decfbf92b645209c0fb8',

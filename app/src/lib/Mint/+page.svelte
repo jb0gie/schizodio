@@ -1,8 +1,8 @@
 <script lang="ts">
-  import Window from './Window.svelte';
-  import Button from './Button.svelte';
-  import ProgressBar from './ProgressBar.svelte';
-  import RandomPopup from './RandomPopup.svelte';
+  import Window from '../components/Window.svelte';
+  import Button from '../components/Button.svelte';
+  import ProgressBar from '../components/ProgressBar.svelte';
+  import RandomPopup from '../components/RandomPopup.svelte';
   import { currentTheme } from '../stores/theme';
   import schizodio_title from '../../assets/images/schizodio.png';
   import starknetSymbol from '/SN-Symbol-Gradient.svg';
@@ -40,7 +40,7 @@
   // Initialize provider and contract
   onMount(() => {
     provider = new RpcProvider({
-      nodeUrl: 'https://starknet-sepolia.public.blastapi.io',
+      nodeUrl: 'https://starknet-mainnet.public.blastapi.io',
     });
     contract = new Contract(
       CONTRACT_ABI,
@@ -486,12 +486,15 @@
 
   async function checkContractPaused() {
     try {
-      console.log('🔍 Checking contract paused status...');
-      const pausedResult = await contract.is_paused();
-      isContractPaused = Boolean(pausedResult);
-      console.log('✅ Contract paused status:', isContractPaused);
+      console.log('🔍 Checking contract mint status...');
+      const mintActiveResult = await contract.is_mint_active();
+      isContractPaused = !Boolean(mintActiveResult);
+      console.log(
+        '✅ Contract mint status:',
+        isContractPaused ? 'PAUSED' : 'ACTIVE'
+      );
     } catch (error) {
-      console.error('❌ Failed to check contract paused status:', error);
+      console.error('❌ Failed to check contract mint status:', error);
       isContractPaused = false; // Default to not paused if we can't check
     }
   }
