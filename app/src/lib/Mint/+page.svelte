@@ -3,6 +3,7 @@
   import Button from '../components/Button.svelte';
   import ProgressBar from '../components/ProgressBar.svelte';
   import RandomPopup from '../components/RandomPopup.svelte';
+  import TransactionToast from '../components/TransactionToast.svelte';
   import { currentTheme } from '../stores/theme';
   import schizodio_title from '../../assets/images/schizodio.png';
   import starknetSymbol from '/SN-Symbol-Gradient.svg';
@@ -705,6 +706,17 @@
 
         mintStatus = `🎉 SCHIZO BROTHER #${lastMintedId} HAS BEEN BORN! WELCOME TO THE FAMILY! 🎉`;
 
+        // Play success sound
+        playSuccessSound();
+
+        // Show transaction toast
+        showTransactionToast(
+          tx.transaction_hash,
+          lastMintedId,
+          selectedPaymentToken.price,
+          selectedToken
+        );
+
         // Random celebration popup
         setTimeout(() => {
           if (lastMintedId !== null) {
@@ -827,7 +839,25 @@
     'https://www.myinstants.com/media/sounds/tiger-uppercut-sagat.mp3',
     'https://www.myinstants.com/media/sounds/groan-tube-1_kdDdtlv.mp3',
     'https://www.myinstants.com/media/sounds/groan-tube-2_xK05nvu.mp3',
+    'https://www.myinstants.com/media/sounds/hitmarker_1.mp3',
+    'https://www.myinstants.com/media/sounds/hit-marker.mp3',
+    'https://www.myinstants.com/media/sounds/take-off_2YqCEjc.mp3',
+    'https://www.myinstants.com/media/sounds/man-screaming-aaaah.mp3'
   ];
+
+  // Success sound for mint
+  const successSound =
+    'https://www.myinstants.com/media/sounds/apple-pay-sound.mp3';
+
+  // Transaction toast state
+  let transactionToastVisible = false;
+  let transactionToastData = {
+    transactionHash: '',
+    tokenId: null as number | null,
+    price: '',
+    token: '',
+    imageUrl: '',
+  };
 
   // Simple audio playback - create audio on demand
   function playRandomSound() {
@@ -869,6 +899,61 @@
           console.log('Error message:', error.message);
         });
     }
+  }
+
+  // Play success sound for mint
+  function playSuccessSound() {
+    if (audioMuted) {
+      console.log('Audio is muted, skipping success sound');
+      return;
+    }
+
+    console.log('Playing success sound:', successSound);
+
+    const audio = new Audio(successSound);
+    audio.volume = 0.4; // Slightly louder for success
+
+    audio.addEventListener('loadstart', () =>
+      console.log('Success audio loadstart')
+    );
+    audio.addEventListener('canplay', () =>
+      console.log('Success audio canplay')
+    );
+    audio.addEventListener('error', e =>
+      console.log('Success audio error:', e)
+    );
+    audio.addEventListener('play', () =>
+      console.log('Success audio started playing')
+    );
+
+    const playPromise = audio.play();
+
+    if (playPromise !== undefined) {
+      playPromise
+        .then(() => {
+          console.log('Success audio started playing successfully');
+        })
+        .catch(error => {
+          console.log('Success audio play failed:', error);
+        });
+    }
+  }
+
+  // Show transaction toast
+  function showTransactionToast(
+    transactionHash: string,
+    tokenId: number,
+    price: string,
+    token: string
+  ) {
+    transactionToastData = {
+      transactionHash,
+      tokenId,
+      price,
+      token,
+      imageUrl: getIPFSImageUrl(tokenId),
+    };
+    transactionToastVisible = true;
   }
 
   // Toggle audio mute state
@@ -970,6 +1055,17 @@
     on:close={() => closePopup(popup.id)}
   />
 {/each}
+
+<!-- Transaction Toast -->
+<TransactionToast
+  visible={transactionToastVisible}
+  transactionHash={transactionToastData.transactionHash}
+  tokenId={transactionToastData.tokenId}
+  price={transactionToastData.price}
+  token={transactionToastData.token}
+  imageUrl={transactionToastData.imageUrl}
+  on:close={() => (transactionToastVisible = false)}
+/>
 
 <!-- MAIN SCHIZO CONTENT -->
 <div
@@ -1163,6 +1259,24 @@
                   {/if}
                 </div>
               </Button>
+
+              <!-- TEST TOAST BUTTON -->
+              <div class="mt-4">
+                <Button
+                  on:click={() => {
+                    console.log('Testing toast...');
+                    showTransactionToast(
+                      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+                      42,
+                      '200',
+                      'STRK'
+                    );
+                    playSuccessSound();
+                  }}
+                >
+                  <div class="schizo-text">🧪 TEST TOAST 🧪</div>
+                </Button>
+              </div>
             {:else}
               <div class="p-6 text-center">
                 <div class="mega-text rainbow mb-4">
