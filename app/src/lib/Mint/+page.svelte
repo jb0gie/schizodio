@@ -141,6 +141,8 @@
   } = $currentTheme);
 
   $: progress = maxSupply > 0 ? (currentSupply / maxSupply) * 100 : 0;
+  $: isSchizo75 = progress >= 75;
+  $: isSchizo90 = progress >= 90;
 
   onMount(async () => {
     try {
@@ -962,7 +964,11 @@
 
 <!-- MAIN SCHIZO CONTENT -->
 <div
-  class="gap-4 flex flex-col justify-center items-center w-full min-h-screen overflow-x-hidden"
+  class="gap-4 flex flex-col justify-center items-center w-full min-h-screen overflow-x-hidden {isSchizo90
+    ? 'schizo-90-page'
+    : isSchizo75
+      ? 'schizo-75-page'
+      : ''}"
 >
   <!-- TOP NAVIGATION -->
   <div class="w-full max-w-screen-xl mx-auto px-4">
@@ -1194,7 +1200,26 @@
           </div>
         </Window>
         <Window title="📉 SCHIZODIO CHART 📈" width="full">
-          <style>#dexscreener-embed{position:relative;width:100%;padding-bottom:125%;}#dexscreener-embed iframe{position:absolute;width:100%;height:100%;top:0;left:0;border:0;}</style><div id="dexscreener-embed"><iframe src="https://dexscreener.com/starknet/0x00acc2fa3bb7f6a6726c14d9e142d51fe3984dbfa32b5907e1e76425177875e2-0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d-2347948331754475397897284791279200659-5982-0x0?embed=1&loadChartSettings=0&tabs=0&info=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=strk&interval=240"></iframe></div>
+          <style>
+            #dexscreener-embed {
+              position: relative;
+              width: 100%;
+              padding-bottom: 125%;
+            }
+            #dexscreener-embed iframe {
+              position: absolute;
+              width: 100%;
+              height: 100%;
+              top: 0;
+              left: 0;
+              border: 0;
+            }
+          </style>
+          <div id="dexscreener-embed">
+            <iframe
+              src="https://dexscreener.com/starknet/0x00acc2fa3bb7f6a6726c14d9e142d51fe3984dbfa32b5907e1e76425177875e2-0x04718f5a0fc34cc1af16a1cdee98ffb20c31f5cd61d6ab07201858f4287c938d-2347948331754475397897284791279200659-5982-0x0?embed=1&loadChartSettings=0&tabs=0&info=0&chartLeftToolbar=0&chartDefaultOnMobile=1&chartTheme=dark&theme=dark&chartStyle=0&chartType=strk&interval=240"
+            ></iframe>
+          </div>
         </Window>
       </div>
 
@@ -1230,7 +1255,15 @@
             <h3 class="mega-text text-center rainbow mb-3">
               ADOPTION PROGRESS
             </h3>
-            <ProgressBar value={progress} max={100} />
+            <div class="relative mb-3">
+              <ProgressBar value={progress} max={100} />
+              <img
+                src={starknetSymbol}
+                alt="Stark"
+                class="absolute top-1/2 transform -translate-y-1/2 w-8 h-8 spinning progress-svg"
+                style="left: calc({progress}% - 16px);"
+              />
+            </div>
 
             <div class="grid grid-cols-2 gap-2 text-center">
               <div class="matrix p-2">
@@ -2712,5 +2745,209 @@
     .floating-warning {
       font-size: 2rem;
     }
+  }
+
+  /* PAGE-LEVEL SCHIZO EFFECTS */
+
+  /* 75% Progress Schizo Effects */
+  .schizo-75-page {
+    animation: schizo-page-pulse 3s infinite;
+  }
+
+  .schizo-75-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(
+        circle at 20% 30%,
+        rgba(255, 0, 0, 0.1) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 80% 70%,
+        rgba(0, 255, 0, 0.1) 0%,
+        transparent 50%
+      ),
+      radial-gradient(
+        circle at 50% 50%,
+        rgba(0, 0, 255, 0.1) 0%,
+        transparent 50%
+      );
+    pointer-events: none;
+    z-index: 0;
+    animation: schizo-page-bg 4s ease-in-out infinite;
+  }
+
+  /* 90% Progress Schizo Effects */
+  .schizo-90-page {
+    animation: schizo-page-intense 1s infinite;
+  }
+
+  .schizo-90-page::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 0, 0, 0.2),
+        rgba(0, 255, 0, 0.2),
+        rgba(0, 0, 255, 0.2),
+        rgba(255, 255, 0, 0.2)
+      ),
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(255, 0, 0, 0.1) 10px,
+        rgba(255, 0, 0, 0.1) 20px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 255, 0, 0.1) 10px,
+        rgba(0, 255, 0, 0.1) 20px
+      );
+    pointer-events: none;
+    z-index: 0;
+    animation: schizo-page-intense-bg 0.5s linear infinite;
+  }
+
+  .schizo-90-page::after {
+    content: '🚨 MAXIMUM SCHIZO MODE ACTIVATED 🚨';
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(
+      45deg,
+      #ff0000,
+      #00ff00,
+      #0000ff,
+      #ffff00,
+      #ff00ff
+    );
+    background-size: 300% 300%;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 2rem;
+    font-weight: bold;
+    text-align: center;
+    z-index: 1000;
+    animation:
+      schizo-page-intense-gradient 0.3s ease-in-out infinite,
+      schizo-page-shake 0.2s infinite;
+    text-shadow:
+      0 0 20px #ff0000,
+      0 0 40px #00ff00,
+      0 0 60px #0000ff;
+  }
+
+  /* Page-level animations */
+  @keyframes schizo-page-pulse {
+    0%,
+    100% {
+      filter: hue-rotate(0deg) brightness(1);
+    }
+    50% {
+      filter: hue-rotate(30deg) brightness(1.1);
+    }
+  }
+
+  @keyframes schizo-page-bg {
+    0%,
+    100% {
+      opacity: 0.3;
+      transform: scale(1);
+    }
+    50% {
+      opacity: 0.6;
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes schizo-page-intense {
+    0%,
+    100% {
+      filter: hue-rotate(0deg) brightness(1) contrast(1);
+    }
+    25% {
+      filter: hue-rotate(90deg) brightness(1.2) contrast(1.2);
+    }
+    50% {
+      filter: hue-rotate(180deg) brightness(1.1) contrast(1.1);
+    }
+    75% {
+      filter: hue-rotate(270deg) brightness(1.3) contrast(1.3);
+    }
+  }
+
+  @keyframes schizo-page-intense-bg {
+    0% {
+      opacity: 0.4;
+      transform: translateX(0px) translateY(0px);
+    }
+    25% {
+      opacity: 0.6;
+      transform: translateX(5px) translateY(-5px);
+    }
+    50% {
+      opacity: 0.8;
+      transform: translateX(-5px) translateY(5px);
+    }
+    75% {
+      opacity: 0.6;
+      transform: translateX(5px) translateY(-5px);
+    }
+    100% {
+      opacity: 0.4;
+      transform: translateX(0px) translateY(0px);
+    }
+  }
+
+  @keyframes schizo-page-intense-gradient {
+    0%,
+    100% {
+      background-position: 0% 50%;
+    }
+    25% {
+      background-position: 100% 0%;
+    }
+    50% {
+      background-position: 100% 100%;
+    }
+    75% {
+      background-position: 0% 100%;
+    }
+  }
+
+  @keyframes schizo-page-shake {
+    0%,
+    100% {
+      transform: translateX(-50%) translateY(0px);
+    }
+    25% {
+      transform: translateX(-50%) translateY(-2px);
+    }
+    50% {
+      transform: translateX(-50%) translateY(2px);
+    }
+    75% {
+      transform: translateX(-50%) translateY(-1px);
+    }
+  }
+
+  /* Progress SVG positioning */
+  .progress-svg {
+    z-index: 20;
+    pointer-events: none;
+    filter: drop-shadow(0 0 4px rgba(0, 0, 0, 0.5));
   }
 </style>
