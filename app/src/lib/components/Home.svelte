@@ -145,7 +145,7 @@
       </Window>
       <Window title="💿schizo.mp3" width="full">
         <div class="audio-player w-full gap-2">
-          <button class="win95-button" on:click={audioStore.togglePlay}>
+          <button class="win95-button p-2 w-14" on:click={audioStore.togglePlay}>
             {#if $audioStore.isPlaying}
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                 <rect x="6" y="4" width="4" height="16"/>
